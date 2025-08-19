@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useContext } from 'react';
@@ -75,11 +76,12 @@ export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }
   };
 
   const setMax = () => {
-    setAmount(balance.toString());
+    // Format to avoid scientific notation for small numbers and limit decimals
+    setAmount(Number(balance.toFixed(6)).toString());
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isLoading) onOpenChange(isOpen); }}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{action} {tokenSymbol}</DialogTitle>
@@ -99,15 +101,15 @@ export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.0"
-                className="pr-16"
+                className="pr-16 text-lg"
                 />
-                <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 h-7" onClick={setMax}>Max</Button>
+                <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 h-8" onClick={setMax}>Max</Button>
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleAction} disabled={isLoading}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancel</Button>
+          <Button onClick={handleAction} disabled={isLoading || !amount}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isLoading ? `${action}ing...` : `Confirm ${action}`}
           </Button>
