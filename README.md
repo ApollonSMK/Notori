@@ -1,4 +1,3 @@
-
 # NotoriStake Mini App
 
 This is a decentralized staking application (Mini App) designed to run on World Chain and integrate seamlessly with the World App ecosystem via MiniKit-JS. Users can stake ERC-20 tokens, earn rewards, and manage their assets in a secure, mobile-first interface.
@@ -16,7 +15,7 @@ This is a decentralized staking application (Mini App) designed to run on World 
 ## Tech Stack
 
 - **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS, shadcn/ui
-- **Blockchain**: Solidity, Hardhat, World Chain
+- **Blockchain**: Solidity, Remix IDE for deployment
 - **Integration**: `@worldcoin/minikit-js` for communication with World App.
 
 ## Getting Started
@@ -28,7 +27,7 @@ Follow these steps to set up and run the project locally for development and tes
 - [Node.js](https://nodejs.org/en/) (v18 or later)
 - [pnpm](https://pnpm.io/installation) (or your preferred package manager like npm/yarn)
 - [Git](https://git-scm.com/)
-- [Foundry](https://book.getfoundry.sh/getting-started/installation) or [Hardhat](https://hardhat.org/getting-started/) for Solidity development.
+- A browser with a crypto wallet extension like [MetaMask](https://metamask.io/).
 
 ### 2. Setup
 
@@ -53,21 +52,33 @@ Now, fill in the variables in `.env.local`:
 - **`NEXT_PUBLIC_WORLD_ID_APP_ID`**: Your App ID from the [Worldcoin Developer Portal](https://developer.worldcoin.org/).
 - **`NEXT_PUBLIC_WORLD_ID_ACTION_ID`**: The Action ID for your "stake" action, created in the Developer Portal.
 - **`DEV_PORTAL_API_KEY`**: Your API key from the Developer Portal, required for verifying payments and transactions on the backend.
-- **`WORLDCHAIN_RPC_URL`**: An RPC URL for World Chain (e.g., from Alchemy).
-- **`CONTRACT_ADDRESS`**: The deployed address of your `Staking.sol` contract.
+- **`CONTRACT_ADDRESS`**: The deployed address of your `Staking.sol` contract (you will get this in the next step).
 - **`TOKEN_ADDRESS`**: The address of the ERC-20 token used for staking (e.g., WLD).
 - **`NEXT_PUBLIC_ALLOWED_RECIPIENTS`**: A comma-separated list of wallet addresses whitelisted for the `pay` command.
 
-### 4. Deploy the Smart Contract
+### 4. Deploy the Smart Contract with Remix
 
-The `contracts/` directory contains the `Staking.sol` contract.
+You will use the [Remix IDE](https://remix.ethereum.org/) to deploy your contract to the World Chain.
 
-1.  **Configure Hardhat**: Update `hardhat.config.js` with your World Chain RPC URL and a deployer private key.
-2.  **Deploy**:
-    ```bash
-    npx hardhat run scripts/deploy.js --network worldchain
-    ```
-3.  Update `CONTRACT_ADDRESS` and `TOKEN_ADDRESS` in your `.env.local` file with the deployed addresses.
+1.  **Open Remix**: Navigate to [remix.ethereum.org](https://remix.ethereum.org/) in your browser.
+2.  **Load the Contract**:
+    *   In the "File Explorers" tab, create a new file named `Staking.sol`.
+    *   Copy the entire content of `contracts/Staking.sol` from this project and paste it into the new file in Remix.
+3.  **Compile the Contract**:
+    *   Go to the "Solidity Compiler" tab (the third icon on the left).
+    *   Set the "Compiler" version to `0.8.20` to match the contract's pragma.
+    *   Click the "Compile Staking.sol" button. A green checkmark will appear if successful.
+4.  **Deploy to World Chain**:
+    *   Go to the "Deploy & Run Transactions" tab (the fourth icon on the left).
+    *   In the "ENVIRONMENT" dropdown, select **"Injected Provider - MetaMask"**. Your wallet will prompt you to connect; approve it.
+    *   Make sure your wallet is connected to the **World Chain** network (or World Chain Sepolia for testing).
+    *   In the "CONTRACT" dropdown, make sure "Staking - Staking.sol" is selected.
+    *   In the "Deploy" section, you need to provide the constructor arguments: `_stakingToken` (the address of the token to be staked, e.g., WLD) and `_rewardsToken` (the address of the rewards token).
+    *   Click the orange "Deploy" button.
+    *   Your wallet will pop up to ask for confirmation. Confirm the transaction.
+5.  **Get the Contract Address**:
+    *   After the transaction is confirmed, the address of your newly deployed contract will appear under "Deployed Contracts" in Remix.
+    *   Copy this address and paste it into the `CONTRACT_ADDRESS` variable in your `.env.local` file.
 
 ### 5. Run the Application
 
@@ -95,11 +106,8 @@ Before submitting your app to the World App store, ensure you meet these guideli
 
 -   `/app`: Frontend Next.js application.
     -   `/api`: Backend API routes for SIWE, verification, etc.
-    -   `/(tabs)`: Route group for pages with the bottom navigation.
 -   `/components`: Reusable React components.
     -   `/ui`: Components from shadcn/ui.
 -   `/contracts`: Solidity smart contracts.
-    -   `/scripts`: Deployment scripts.
 -   `/hooks`: Custom React hooks.
 -   `/lib`: Utility functions.
-```# Notori
