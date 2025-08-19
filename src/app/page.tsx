@@ -30,16 +30,17 @@ export default function Home() {
     apr, 
     isLoading, 
     claimRewards,
-    handleVerifyRedirect 
+    handleVerifyRedirect,
+    isMounted
   } = useContext(AppContext);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (isMounted && !isLoading && !isAuthenticated) {
       router.push('/auth');
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, router, isMounted]);
 
   const handleClaim = async () => {
     try {
@@ -57,7 +58,7 @@ export default function Home() {
     }
   };
   
-  if (isLoading || !isAuthenticated) {
+  if (!isMounted || isLoading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">

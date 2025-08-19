@@ -7,8 +7,6 @@ import { ethers } from 'ethers';
 import NotoriStakeABI from '@/abi/NotoriStake.json';
 import { useRouter } from 'next/navigation';
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
-const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ADDRESS!;
 const RPC_URL = process.env.NEXT_PUBLIC_WORLDCHAIN_RPC!;
 
 // A simple ERC20 ABI snippet to get the balance
@@ -27,6 +25,7 @@ interface AppState {
   rewardsAccumulated: number;
   apr: string;
   isLoading: boolean;
+  isMounted: boolean;
   login: (address: string, username: string) => void;
   logout: () => void;
   setVerifiedStatus: (status: boolean) => void;
@@ -46,6 +45,7 @@ export const AppContext = createContext<AppState>({
   rewardsAccumulated: 0,
   apr: "0%",
   isLoading: true,
+  isMounted: false,
   login: () => {},
   logout: () => {},
   setVerifiedStatus: () => {},
@@ -65,9 +65,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [rewardsAccumulated, setRewardsAccumulated] = useState(0);
   const [apr, setApr] = useState("12.5%");
   const [isLoading, setIsLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const fetchContractData = useCallback(async (userAddress: string) => {
+    const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
+    const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ADDRESS!;
+
     if (!RPC_URL || !CONTRACT_ADDRESS || !TOKEN_ADDRESS) {
       console.error("RPC URL, Contract Address, or Token Address is not set.");
       setIsLoading(false);
@@ -86,9 +94,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         tokenContract.decimals()
       ]);
 
-      setStakedAmount(parseFloat(ethers.formatUnits(staked, decimals)));
-      setRewardsAccumulated(parseFloat(ethers.formatUnits(rewards, decimals)));
-      setWalletBalance(parseFloat(ethers.formatUnits(balance, decimals)));
+      const tokenDecimals = Number(decimals);
+      setStakedAmount(parseFloat(ethers.formatUnits(staked, tokenDecimals)));
+      setRewardsAccumulated(parseFloat(ethers.formatUnits(rewards, tokenDecimals)));
+      setWalletBalance(parseFloat(ethers.formatUnits(balance, tokenDecimals)));
       
     } catch (error) {
       console.error("Failed to fetch contract data:", error);
@@ -107,9 +116,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setAddress(storedAddress);
         setUsername(storedUsername);
         setIsAuthenticated(true);
-        // In a real app, you'd check verification status from your backend
-        // For now, let's assume not verified until they go through the flow.
-        // setIsVerified(await checkVerificationStatus(storedAddress)); 
         await fetchContractData(storedAddress);
     } else {
         setIsLoading(false);
@@ -117,8 +123,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchContractData]);
 
   useEffect(() => {
-    initAuth();
-  }, [initAuth]);
+    if (isMounted) {
+        initAuth();
+    }
+  }, [isMounted, initAuth]);
 
 
   const login = (addr: string, user: string) => {
@@ -140,6 +148,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const sendTx = async (functionName: string, args: any[]) => {
+    const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
+    const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ADDRESS!;
+
     if (!MiniKit.isInstalled()) throw new Error("MiniKit not installed");
     if (!CONTRACT_ADDRESS || !TOKEN_ADDRESS) throw new Error("Contract or Token address not configured.");
 
@@ -174,7 +185,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
 
     console.log('Transaction sent:', finalPayload.transaction_id);
-    // You can use the transaction_id to monitor the transaction status
     return finalPayload.transaction_id;
   }
 
@@ -209,6 +219,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     rewardsAccumulated,
     apr,
     isLoading,
+    isMounted,
     login,
     logout,
     setVerifiedStatus: setIsVerified,
