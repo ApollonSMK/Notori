@@ -1,15 +1,16 @@
+
 "use client";
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, History, Settings, ShoppingCart } from 'lucide-react';
+import { Home, History, User, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/history', label: 'History', icon: History },
   { href: '/boosts', label: 'Boosts', icon: ShoppingCart },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/profile', label: 'Profile', icon: User },
 ];
 
 export function BottomNav() {
