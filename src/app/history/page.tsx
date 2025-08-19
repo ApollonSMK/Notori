@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Download, Upload, Award } from 'lucide-react';
+import { Download, Upload, Award, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const mockHistory = [
@@ -12,12 +12,14 @@ const mockHistory = [
   { id: 2, type: 'Claim', amount: 10.5, symbol: 'WLD', date: '2024-07-25', status: 'Completed' },
   { id: 3, type: 'Unstake', amount: 200, symbol: 'WLD', date: '2024-07-22', status: 'Completed' },
   { id: 4, type: 'Stake', amount: 200, symbol: 'WLD', date: '2024-07-20', status: 'Pending' },
+  { id: 5, type: 'Verify', amount: null, symbol: 'World ID', date: '2024-07-19', status: 'Completed' },
 ];
 
-const typeDetails = {
+const typeDetails: { [key: string]: { icon: React.ElementType, className: string } } = {
     Stake: { icon: Upload, className: 'text-primary bg-primary/10' },
     Unstake: { icon: Download, className: 'text-foreground bg-secondary' },
     Claim: { icon: Award, className: 'text-accent-foreground bg-accent' },
+    Verify: { icon: ShieldCheck, className: 'text-green-600 bg-green-100' },
 };
 
 export default function HistoryPage() {
@@ -60,8 +62,12 @@ export default function HistoryPage() {
                                 </div>
                             </TableCell>
                             <TableCell className="text-right">
-                                <p className="font-semibold">{item.type === 'Unstake' ? '-' : '+'} {item.amount} {item.symbol}</p>
-                                <Badge variant={item.status === 'Completed' ? 'default' : 'secondary'}>
+                                {item.amount !== null ? (
+                                    <p className="font-semibold">{item.type === 'Unstake' ? '-' : '+'} {item.amount} {item.symbol}</p>
+                                ) : (
+                                    <p className="font-semibold">{item.symbol}</p>
+                                )}
+                                <Badge variant={item.status === 'Completed' ? 'default' : 'secondary'} className={cn(item.type === 'Verify' && 'bg-green-100 text-green-700 border-green-200')}>
                                     {item.status}
                                 </Badge>
                             </TableCell>

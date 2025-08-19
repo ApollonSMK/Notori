@@ -60,9 +60,9 @@ export default function Home() {
           <Alert variant="default" className="mb-6 bg-accent/10 border-accent/50">
             <ShieldCheck className="h-4 w-4 text-accent" />
             <AlertTitle className="font-semibold text-accent">Verify Your Identity</AlertTitle>
-            <AlertDescription className="text-accent/90">
+            <AlertDescription className="text-accent/90 flex justify-between items-center">
               To start staking, you need to verify your identity with World ID.
-              <Button size="sm" className="ml-4 bg-accent text-accent-foreground hover:bg-accent/90">Verify Now</Button>
+              <Button size="sm" className="ml-4 bg-accent text-accent-foreground hover:bg-accent/90 whitespace-nowrap">Verify Now</Button>
             </AlertDescription>
           </Alert>
         )}
@@ -92,39 +92,23 @@ export default function Home() {
                 <Badge variant="secondary">{MOCK_STAKING_DATA.apr}</Badge>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-3">
+          <CardFooter className="flex flex-col gap-3 fixed bottom-16 left-0 right-0 p-4 bg-background border-t max-w-md mx-auto">
             <Button
-              className="w-full"
+              className="w-full h-12 text-base font-bold"
               onClick={handleClaim}
               disabled={!MOCK_USER.isVerified || MOCK_STAKING_DATA.rewardsAccumulated <= 0}
             >
-              <Award className="mr-2 h-4 w-4" /> Claim Rewards
+              <Award className="mr-2 h-5 w-5" /> Claim Rewards
             </Button>
             <div className="grid grid-cols-2 gap-3 w-full">
-              <Button className="w-full" variant="outline" onClick={() => openDialog('Unstake')} disabled={!MOCK_USER.isVerified}>
-                <Download className="mr-2 h-4 w-4" /> Unstake
+              <Button className="w-full h-12" variant="outline" onClick={() => openDialog('Unstake')} disabled={!MOCK_USER.isVerified}>
+                <Download className="mr-2 h-5 w-5" /> Unstake
               </Button>
-              <Button className="w-full" variant="secondary" onClick={() => openDialog('Stake')} disabled={!MOCK_USER.isVerified}>
-                <Upload className="mr-2 h-4 w-4" /> Stake
+              <Button className="w-full h-12" variant="default" onClick={() => openDialog('Stake')} disabled={!MOCK_USER.isVerified}>
+                <Upload className="mr-2 h-5 w-5" /> Stake
               </Button>
             </div>
           </CardFooter>
-        </Card>
-
-        <Card className="w-full shadow-lg mt-6">
-            <CardHeader>
-                <CardTitle>Boost Your Yield</CardTitle>
-                <CardDescription>Purchase boosts to increase your staking rewards.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="flex justify-between items-center bg-primary/10 p-4 rounded-lg">
-                    <div>
-                        <p className="font-bold text-primary">2x Rewards Boost</p>
-                        <p className="text-sm text-muted-foreground">Duration: 24 hours</p>
-                    </div>
-                    <Button className="bg-accent text-accent-foreground hover:bg-accent/90">Buy for 5 WLD</Button>
-                </div>
-            </CardContent>
         </Card>
       </div>
 
