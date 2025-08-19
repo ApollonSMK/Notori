@@ -1,6 +1,8 @@
+
 "use client";
 
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,37 +12,56 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from '@/components/ui/badge';
 import { StakeDialog } from '@/components/StakeDialog';
 import { Coins, HelpCircle, ShieldCheck, Download, Upload, Award } from 'lucide-react';
+import { AppContext } from '@/context/AppContext';
+import { useToast } from '@/hooks/use-toast';
+import { MiniKit } from '@worldcoin/minikit-js';
+import NotoriStakeABI from '@/abi/NotoriStake.json';
 
-const MOCK_USER = {
-  username: "notorious.eth",
-  avatar: "https://placehold.co/40x40.png",
-  isVerified: false, 
-};
-
-const MOCK_STAKING_DATA = {
-  walletBalance: 150.75,
-  stakedAmount: 1000.00,
-  rewardsAccumulated: 42.1234,
-  apr: "12.5%",
-  tokenSymbol: "WLD",
-};
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
+const TOKEN_SYMBOL = "WLD";
 
 export default function Home() {
   const [isStakeDialogOpen, setIsStakeDialogOpen] = useState(false);
   const [isUnstakeDialogOpen, setIsUnstakeDialogOpen] = useState(false);
+  const { isAuthenticated, isVerified, username, walletBalance, stakedAmount, rewardsAccumulated, apr, isLoading, claimRewards } = useContext(AppContext);
+  const router = useRouter();
+  const { toast } = useToast();
 
-  const openDialog = (action: 'Stake' | 'Unstake') => {
-    if (action === 'Stake') {
-      setIsStakeDialogOpen(true);
-    } else {
-      setIsUnstakeDialogOpen(true);
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth');
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  const handleClaim = async () => {
+    try {
+      await claimRewards();
+      toast({
+        title: "Claim Submitted",
+        description: "Your reward claim transaction has been sent.",
+      });
+    } catch (error) {
+      toast({
+        title: "Claim Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleClaim = () => {
-    // MiniKit sendTransaction logic for claiming
-    console.log("Claiming rewards...");
+  const handleVerifyRedirect = () => {
+    router.push('/verify');
   };
+  
+  if (isLoading || !isAuthenticated) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <p>Loading...</p>
+        </div>
+      </AppLayout>
+    )
+  }
 
   return (
     <AppLayout>
@@ -51,18 +72,18 @@ export default function Home() {
             <h1 className="text-2xl font-bold">NotoriStake</h1>
           </div>
           <Avatar>
-            <AvatarImage data-ai-hint="user avatar" src={MOCK_USER.avatar} alt={MOCK_USER.username} />
-            <AvatarFallback>{MOCK_USER.username.substring(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarImage data-ai-hint="user avatar" src={`https://placehold.co/40x40.png?text=${username?.substring(0,2)}`} alt={username} />
+            <AvatarFallback>{username?.substring(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
         </header>
         
-        {!MOCK_USER.isVerified && (
+        {!isVerified && (
           <Alert variant="default" className="mb-6 bg-accent/10 border-accent/50">
             <ShieldCheck className="h-4 w-4 text-accent" />
             <AlertTitle className="font-semibold text-accent">Verify Your Identity</AlertTitle>
             <AlertDescription className="text-accent/90 flex justify-between items-center">
               To start staking, you need to verify your identity with World ID.
-              <Button size="sm" className="ml-4 bg-accent text-accent-foreground hover:bg-accent/90 whitespace-nowrap">Verify Now</Button>
+              <Button size="sm" className="ml-4 bg-accent text-accent-foreground hover:bg-accent/90 whitespace-nowrap" onClick={handleVerifyRedirect}>Verify Now</Button>
             </AlertDescription>
           </Alert>
         )}
@@ -71,40 +92,40 @@ export default function Home() {
           <CardHeader>
             <CardDescription>Total Staked</CardDescription>
             <CardTitle className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold">{MOCK_STAKING_DATA.stakedAmount.toFixed(2)}</span>
-              <span className="text-xl font-medium text-muted-foreground">{MOCK_STAKING_DATA.tokenSymbol}</span>
+              <span className="text-4xl font-bold">{stakedAmount.toFixed(2)}</span>
+              <span className="text-xl font-medium text-muted-foreground">{TOKEN_SYMBOL}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Accumulated Rewards</span>
-              <span className="font-semibold text-primary">{MOCK_STAKING_DATA.rewardsAccumulated.toFixed(4)} {MOCK_STAKING_DATA.tokenSymbol}</span>
+              <span className="font-semibold text-primary">{rewardsAccumulated.toFixed(4)} {TOKEN_SYMBOL}</span>
             </div>
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Wallet Balance</span>
-              <span className="font-semibold">{MOCK_STAKING_DATA.walletBalance.toFixed(2)} {MOCK_STAKING_DATA.tokenSymbol}</span>
+              <span className="font-semibold">{walletBalance.toFixed(2)} {TOKEN_SYMBOL}</span>
             </div>
             <div className="flex justify-between items-center">
                 <span className="text-muted-foreground flex items-center gap-1">
                     APR <HelpCircle className="w-4 h-4 cursor-pointer text-muted-foreground" />
                 </span>
-                <Badge variant="secondary">{MOCK_STAKING_DATA.apr}</Badge>
+                <Badge variant="secondary">{apr}</Badge>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3 fixed bottom-16 left-0 right-0 p-4 bg-background border-t max-w-md mx-auto">
             <Button
               className="w-full h-12 text-base font-bold"
               onClick={handleClaim}
-              disabled={!MOCK_USER.isVerified || MOCK_STAKING_DATA.rewardsAccumulated <= 0}
+              disabled={!isVerified || rewardsAccumulated <= 0}
             >
               <Award className="mr-2 h-5 w-5" /> Claim Rewards
             </Button>
             <div className="grid grid-cols-2 gap-3 w-full">
-              <Button className="w-full h-12" variant="outline" onClick={() => openDialog('Unstake')} disabled={!MOCK_USER.isVerified}>
+              <Button className="w-full h-12" variant="outline" onClick={() => setIsUnstakeDialogOpen(true)} disabled={!isVerified}>
                 <Download className="mr-2 h-5 w-5" /> Unstake
               </Button>
-              <Button className="w-full h-12" variant="default" onClick={() => openDialog('Stake')} disabled={!MOCK_USER.isVerified}>
+              <Button className="w-full h-12" variant="default" onClick={() => setIsStakeDialogOpen(true)} disabled={!isVerified}>
                 <Upload className="mr-2 h-5 w-5" /> Stake
               </Button>
             </div>
@@ -116,15 +137,15 @@ export default function Home() {
         open={isStakeDialogOpen}
         onOpenChange={setIsStakeDialogOpen}
         action="Stake"
-        balance={MOCK_STAKING_DATA.walletBalance}
-        tokenSymbol={MOCK_STAKING_DATA.tokenSymbol}
+        balance={walletBalance}
+        tokenSymbol={TOKEN_SYMBOL}
       />
       <StakeDialog
         open={isUnstakeDialogOpen}
         onOpenChange={setIsUnstakeDialogOpen}
         action="Unstake"
-        balance={MOCK_STAKING_DATA.stakedAmount}
-        tokenSymbol={MOCK_STAKING_DATA.tokenSymbol}
+        balance={stakedAmount}
+        tokenSymbol={TOKEN_SYMBOL}
       />
     </AppLayout>
   );

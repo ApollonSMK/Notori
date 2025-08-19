@@ -1,43 +1,31 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, UserCheck } from 'lucide-react';
+import { AppContext } from '@/context/AppContext';
+import { MiniKit } from '@worldcoin/minikit-js';
 
-// MOCK: Replace with actual MiniKit integration
-const MOCK_MiniKit = {
-    isInstalled: () => true,
-    user: {
-        username: null as string | null,
-    },
-    commandsAsync: {
-        walletAuth: async (payload: { nonce: string }) => {
-            console.log("MiniKit walletAuth called with:", payload);
-            // Simulate API call and wallet interaction
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            return {
-                finalPayload: {
-                    status: 'success',
-                    message: 'mock_message',
-                    signature: 'mock_signature',
-                    address: '0x123...abc',
-                }
-            }
-        }
-    }
-}
 
 export default function AuthPage() {
+    const { isAuthenticated, login, username } = useContext(AppContext);
     const [isLoading, setIsLoading] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const { toast } = useToast();
+    const router = useRouter();
+
+    useEffect(() => {
+        if(isAuthenticated) {
+            router.push('/');
+        }
+    }, [isAuthenticated, router]);
 
     const handleSignIn = async () => {
-        if (!MOCK_MiniKit.isInstalled()) {
+        if (!MiniKit.isInstalled()) {
             toast({ title: "Error", description: "World App is not installed.", variant: "destructive" });
             return;
         }
@@ -51,7 +39,7 @@ export default function AuthPage() {
             const { nonce } = await nonceRes.json();
 
             // 2. Call MiniKit walletAuth
-            const { finalPayload } = await MOCK_MiniKit.commandsAsync.walletAuth({ nonce });
+            const { finalPayload } = await MiniKit.commandsAsync.walletAuth({ nonce });
 
             if (finalPayload.status === 'success') {
                 // 3. Send payload to backend to complete SIWE
@@ -66,9 +54,9 @@ export default function AuthPage() {
                 const { isValid, username } = await siweRes.json();
                 
                 if (isValid) {
-                    setIsAuthenticated(true);
-                    MOCK_MiniKit.user.username = username; // Mock setting username
+                    login(finalPayload.address, username);
                     toast({ title: "Success", description: `Signed in as ${username}` });
+                    router.push('/');
                 } else {
                     throw new Error('Invalid signature.');
                 }
@@ -105,7 +93,7 @@ export default function AuthPage() {
                             {isAuthenticated ? (
                                 <div className="flex flex-col items-center text-center">
                                     <UserCheck className="h-16 w-16 text-green-500 mb-4" />
-                                    <p className="font-bold text-lg">{MOCK_MiniKit.user.username}</p>
+                                    <p className="font-bold text-lg">{username}</p>
                                     <p className="text-muted-foreground">Authentication complete.</p>
                                 </div>
                             ) : (

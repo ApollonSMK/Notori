@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from 'lucide-react';
+import { AppContext } from '@/context/AppContext';
 
 interface StakeDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { stake, unstake } = useContext(AppContext);
 
   const handleAction = async () => {
     const numericAmount = parseFloat(amount);
@@ -41,22 +43,35 @@ export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }
     if (numericAmount > balance) {
         toast({
             title: "Insufficient Balance",
-            description: `You cannot ${action.toLowerCase()} more than your available ${action === 'Stake' ? 'wallet' : 'staked'} balance of ${balance} ${tokenSymbol}.`,
+            description: `You cannot ${action.toLowerCase()} more than your available balance.`,
             variant: "destructive",
         });
         return;
     }
 
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    setIsLoading(false);
-    onOpenChange(false);
-    setAmount('');
-    toast({
-      title: `${action} Initiated`,
-      description: `Your transaction to ${action.toLowerCase()} ${numericAmount} ${tokenSymbol} has been submitted.`,
-    });
+    try {
+        if (action === 'Stake') {
+            await stake(amount);
+        } else {
+            await unstake(amount);
+        }
+        toast({
+            title: `${action} Submitted`,
+            description: `Your transaction to ${action.toLowerCase()} ${numericAmount} ${tokenSymbol} has been sent.`,
+        });
+        onOpenChange(false);
+        setAmount('');
+    } catch (error) {
+        toast({
+            title: `${action} Failed`,
+            description: error instanceof Error ? error.message : "An unknown error occurred.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   const setMax = () => {

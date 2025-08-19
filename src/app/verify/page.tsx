@@ -1,58 +1,48 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
-
-// MOCK: Replace with actual MiniKit integration
-const MOCK_MiniKit = {
-    isInstalled: () => true,
-    user: {
-        username: "notorious.eth" // Assume user is logged in
-    },
-    commandsAsync: {
-        verify: async (payload: any) => {
-            console.log("MiniKit verify called with:", payload);
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            // Simulate a successful verification
-            return {
-                finalPayload: {
-                    status: 'success',
-                    proof: 'mock_proof',
-                    merkle_root: 'mock_merkle_root',
-                    nullifier_hash: 'mock_nullifier_hash',
-                    verification_level: 'orb',
-                }
-            };
-        }
-    }
-};
+import { AppContext } from '@/context/AppContext';
+import { MiniKit, VerificationLevel } from '@worldcoin/minikit-js';
 
 export default function VerifyPage() {
+    const { isVerified, username, setVerifiedStatus } = useContext(AppContext);
     const [isLoading, setIsLoading] = useState(false);
-    const [isVerified, setIsVerified] = useState(false);
     const { toast } = useToast();
+    const router = useRouter();
 
-    // These should come from your .env file
-    const ACTION_ID = process.env.NEXT_PUBLIC_WORLD_ID_ACTION_ID || 'stakenotori'; 
-    const SIGNAL = MOCK_MiniKit.user.username; 
+    const ACTION_ID = process.env.NEXT_PUBLIC_WORLD_ID_ACTION_ID!; 
+    const SIGNAL = username;
+
+    useEffect(() => {
+        if(isVerified) {
+            router.push('/');
+        }
+    }, [isVerified, router]);
 
     const handleVerify = async () => {
-        if (!MOCK_MiniKit.isInstalled()) {
+        if (!MiniKit.isInstalled()) {
             toast({ title: "Error", description: "World App is not installed.", variant: "destructive" });
+            return;
+        }
+
+        if (!SIGNAL) {
+            toast({ title: "Error", description: "User not signed in, cannot create signal.", variant: "destructive" });
             return;
         }
 
         setIsLoading(true);
         try {
-            const { finalPayload } = await MOCK_MiniKit.commandsAsync.verify({
+            const { finalPayload } = await MiniKit.commandsAsync.verify({
                 action: ACTION_ID,
                 signal: SIGNAL,
-                verification_level: 'orb', // or 'device'
+                verification_level: VerificationLevel.Orb,
             });
 
             if (finalPayload.status === 'success') {
@@ -69,11 +59,12 @@ export default function VerifyPage() {
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    setIsVerified(true);
+                    setVerifiedStatus(true);
                     toast({
                         title: "Verification Successful",
                         description: "You are now verified and can start staking.",
                     });
+                    router.push('/');
                 } else {
                     throw new Error(result.detail || "Verification failed on the backend.");
                 }
