@@ -1,18 +1,19 @@
 "use client";
 
 import { AppLayout } from '@/components/AppLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Download, Upload, Award, ShieldCheck } from 'lucide-react';
+import { Download, Upload, Award, ShieldCheck, ExternalLink, ListX } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 const mockHistory = [
-  { id: 1, type: 'Stake', amount: 500, symbol: 'WLD', date: '2024-07-29', status: 'Completed' },
-  { id: 2, type: 'Claim', amount: 10.5, symbol: 'WLD', date: '2024-07-25', status: 'Completed' },
-  { id: 3, type: 'Unstake', amount: 200, symbol: 'WLD', date: '2024-07-22', status: 'Completed' },
-  { id: 4, type: 'Stake', amount: 200, symbol: 'WLD', date: '2024-07-20', status: 'Pending' },
-  { id: 5, type: 'Verify', amount: null, symbol: 'World ID', date: '2024-07-19', status: 'Completed' },
+  { id: 1, type: 'Stake', amount: 500, symbol: 'WLD', date: '2024-07-29T10:30:00Z', status: 'Completed', txHash: '0x123...abc' },
+  { id: 2, type: 'Claim', amount: 10.5, symbol: 'WLD', date: '2024-07-25T15:45:00Z', status: 'Completed', txHash: '0x456...def' },
+  { id: 3, type: 'Unstake', amount: 200, symbol: 'WLD', date: '2024-07-22T08:00:00Z', status: 'Completed', txHash: '0x789...ghi' },
+  { id: 4, type: 'Stake', amount: 200, symbol: 'WLD', date: '2024-07-20T12:00:00Z', status: 'Pending', txHash: '0xabc...123' },
+  { id: 5, type: 'Verify', amount: null, symbol: 'World ID', date: '2024-07-19T09:00:00Z', status: 'Completed', txHash: null },
 ];
 
 const typeDetails: { [key: string]: { icon: React.ElementType, className: string } } = {
@@ -31,54 +32,71 @@ export default function HistoryPage() {
           <p className="text-muted-foreground">Your recent staking activities.</p>
         </header>
 
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Activity</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockHistory.length === 0 ? (
-                    <TableRow>
-                        <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">No history yet.</TableCell>
-                    </TableRow>
-                ) : (
-                    mockHistory.map((item) => {
-                        const details = typeDetails[item.type as keyof typeof typeDetails];
-                        return (
-                            <TableRow key={item.id}>
-                            <TableCell>
-                                <div className="flex items-center gap-3">
-                                    <div className={cn("rounded-full p-2 flex items-center justify-center w-10 h-10", details.className)}>
-                                        <details.icon className="h-5 w-5" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">{item.type}</p>
-                                        <p className="text-sm text-muted-foreground">{item.date}</p>
-                                    </div>
+        <div className="space-y-4">
+          {mockHistory.length === 0 ? (
+            <Card className="flex flex-col items-center justify-center p-10 text-center">
+              <ListX className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold">No History Yet</h3>
+              <p className="text-muted-foreground">Your transactions will appear here once you start staking.</p>
+            </Card>
+          ) : (
+            mockHistory.map((item) => {
+              const details = typeDetails[item.type as keyof typeof typeDetails];
+              const isPositive = item.type === 'Stake' || item.type === 'Claim';
+              
+              return (
+                <Card key={item.id} className="shadow-md overflow-hidden">
+                    <CardHeader className="p-4">
+                        <div className="flex items-center gap-4">
+                            <div className={cn("rounded-full p-2.5 flex items-center justify-center w-12 h-12", details.className)}>
+                                <details.icon className="h-6 w-6" />
+                            </div>
+                            <div className="flex-1">
+                                <CardTitle className="text-lg">{item.type}</CardTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    {new Date(item.date).toLocaleString()}
+                                </p>
+                            </div>
+                            {item.amount !== null ? (
+                                <div className={cn(
+                                    "text-lg font-bold",
+                                    isPositive ? "text-green-600" : "text-destructive"
+                                )}>
+                                    {isPositive ? '+' : '-'} {item.amount} {item.symbol}
                                 </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                                {item.amount !== null ? (
-                                    <p className="font-semibold">{item.type === 'Unstake' ? '-' : '+'} {item.amount} {item.symbol}</p>
-                                ) : (
-                                    <p className="font-semibold">{item.symbol}</p>
-                                )}
-                                <Badge variant={item.status === 'Completed' ? 'default' : 'secondary'} className={cn(item.type === 'Verify' && 'bg-green-100 text-green-700 border-green-200')}>
-                                    {item.status}
+                            ) : (
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+                                    {item.symbol}
                                 </Badge>
-                            </TableCell>
-                            </TableRow>
-                        );
-                    })
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                            )}
+                        </div>
+                    </CardHeader>
+                    <Separator />
+                    <CardFooter className="p-3 bg-muted/50 flex justify-between items-center text-xs">
+                        <Badge variant={item.status === 'Completed' ? 'default' : 'secondary'} 
+                            className={cn(
+                                item.status === 'Completed' && 'bg-green-100 text-green-700 border-green-200',
+                                item.status === 'Pending' && 'bg-amber-100 text-amber-800 border-amber-200',
+                            )}>
+                            {item.status}
+                        </Badge>
+
+                        {item.txHash && (
+                            <a
+                                href={`https://worldscan.org/tx/${item.txHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
+                            >
+                                View on Explorer <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+                            </a>
+                        )}
+                    </CardFooter>
+                </Card>
+              );
+            })
+          )}
+        </div>
       </div>
     </AppLayout>
   );
