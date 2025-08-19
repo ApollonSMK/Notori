@@ -48,7 +48,7 @@ export const AppContext = createContext<AppState>({
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isVerified, setIsVerified] = useState(false); // In a real app, this would be fetched from your backend
+  const [isVerified, setIsVerified] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [walletBalance, setWalletBalance] = useState(0);
@@ -56,11 +56,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [rewardsAccumulated, setRewardsAccumulated] = useState(0);
   const [apr, setApr] = useState("12.5%");
   const [isLoading, setIsLoading] = useState(true);
+  const [contract, setContract] = useState<ethers.Contract | null>(null);
 
-  const provider = new ethers.JsonRpcProvider(RPC_URL);
-  const contract = new ethers.Contract(CONTRACT_ADDRESS, NotoriStakeABI, provider);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const provider = new ethers.JsonRpcProvider(RPC_URL);
+      const newContract = new ethers.Contract(CONTRACT_ADDRESS, NotoriStakeABI, provider);
+      setContract(newContract);
+    }
+  }, []);
 
   const fetchContractData = useCallback(async (userAddress: string) => {
+    if (!contract) return;
     try {
         const staked = await contract.getStakedAmount(userAddress);
         const rewards = await contract.getRewardsAmount(userAddress);
@@ -84,10 +91,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(true);
         // You'd also check verification status from your backend
         // setIsVerified(await checkVerificationStatus(storedAddress));
-        fetchContractData(storedAddress);
+        if (contract) {
+          fetchContractData(storedAddress);
+        }
     }
     setIsLoading(false);
-  }, [fetchContractData]);
+  }, [fetchContractData, contract]);
 
   const login = (addr: string, user: string) => {
     localStorage.setItem('notori_address', addr);
@@ -109,6 +118,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const sendTx = async (functionName: string, args: any[]) => {
     if (!MiniKit.isInstalled()) throw new Error("MiniKit not installed");
+    if (!contract) throw new Error("Contract not initialized");
 
     const txPayload: SendTransactionInput = {
         transaction: [{
@@ -119,7 +129,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }]
     };
     
-    // For staking, we need to move tokens, so we use permit2
     if(functionName === 'stake') {
         const amountToStake = args[0];
         txPayload.permit2 = [{
@@ -128,11 +137,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 amount: amountToStake,
             },
             spender: CONTRACT_ADDRESS,
-            // Nonce and deadline are handled by MiniKit if not provided
             nonce: Date.now().toString(),
             deadline: (Math.floor(Date.now() / 1000) + 3600).toString(),
         }];
-        // The last argument in the contract call must be the placeholder
         txPayload.transaction[0].args.push('PERMIT2_SIGNATURE_PLACEHOLDER_0');
     }
 
@@ -141,7 +148,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (finalPayload.status === 'error') {
         throw new Error(finalPayload.error_code || 'Transaction failed.');
     }
-    // TODO: Use useWaitForTransactionReceipt to track status and update UI
     console.log('Transaction sent:', finalPayload.transaction_id);
     return finalPayload.transaction_id;
   }
@@ -149,7 +155,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const stake = async (amount: string) => {
     const amountInWei = ethers.parseEther(amount).toString();
     await sendTx('stake', [amountInWei]);
-    // Optimistically update UI or wait for transaction receipt
   };
 
   const unstake = async (amount: string) => {
