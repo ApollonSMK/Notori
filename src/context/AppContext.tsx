@@ -56,19 +56,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [rewardsAccumulated, setRewardsAccumulated] = useState(0);
   const [apr, setApr] = useState("12.5%");
   const [isLoading, setIsLoading] = useState(true);
-  const [contract, setContract] = useState<ethers.Contract | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const provider = new ethers.JsonRpcProvider(RPC_URL);
-      const newContract = new ethers.Contract(CONTRACT_ADDRESS, NotoriStakeABI, provider);
-      setContract(newContract);
-    }
-  }, []);
 
   const fetchContractData = useCallback(async (userAddress: string) => {
-    if (!contract) return;
+    if (!RPC_URL || !CONTRACT_ADDRESS) {
+      console.error("RPC URL or Contract Address is not set.");
+      return;
+    }
     try {
+        const provider = new ethers.JsonRpcProvider(RPC_URL);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, NotoriStakeABI, provider);
+
         const staked = await contract.getStakedAmount(userAddress);
         const rewards = await contract.getRewardsAmount(userAddress);
         // A more complex app would fetch token balance, but we'll mock it for now
@@ -78,7 +75,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
         console.error("Failed to fetch contract data:", error);
     }
-  }, [contract]);
+  }, []);
 
   useEffect(() => {
     MiniKit.install();
@@ -91,12 +88,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(true);
         // You'd also check verification status from your backend
         // setIsVerified(await checkVerificationStatus(storedAddress));
-        if (contract) {
-          fetchContractData(storedAddress);
-        }
+        fetchContractData(storedAddress);
     }
     setIsLoading(false);
-  }, [fetchContractData, contract]);
+  }, [fetchContractData]);
 
   const login = (addr: string, user: string) => {
     localStorage.setItem('notori_address', addr);
@@ -118,7 +113,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const sendTx = async (functionName: string, args: any[]) => {
     if (!MiniKit.isInstalled()) throw new Error("MiniKit not installed");
-    if (!contract) throw new Error("Contract not initialized");
 
     const txPayload: SendTransactionInput = {
         transaction: [{
