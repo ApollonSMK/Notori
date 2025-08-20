@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from '@/components/ui/badge';
 import { StakeDialog } from '@/components/StakeDialog';
-import { Coins, HelpCircle, ShieldCheck, Download, Upload, Award, Wallet } from 'lucide-react';
+import { Coins, HelpCircle, ShieldCheck, Download, Upload, Award, Wallet, Loader2 } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -62,7 +62,7 @@ export default function Home() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <p>Loading...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </AppLayout>
     )
@@ -72,63 +72,72 @@ export default function Home() {
     <AppLayout>
       <div className="container mx-auto max-w-md px-4 py-6">
         <header className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-2">
-            <Coins className="text-primary h-8 w-8" />
-            <h1 className="text-2xl font-bold">NotoriStake</h1>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-full">
+                <Coins className="text-primary h-6 w-6" />
+            </div>
+            <h1 className="text-xl font-bold">NotoriStake</h1>
           </div>
-          <Avatar>
+          <Avatar className="h-10 w-10 border-2 border-primary/20">
             <AvatarImage data-ai-hint="user avatar" src={`https://placehold.co/40x40.png`} alt={username ?? 'user'} />
             <AvatarFallback>{username?.substring(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
         </header>
         
         {!isVerified && (
-          <Alert variant="default" className="mb-6 bg-accent/10 border-accent/50 cursor-pointer" onClick={handleVerifyRedirect}>
-            <ShieldCheck className="h-4 w-4 text-accent" />
-            <AlertTitle className="font-semibold text-accent">Verify Your Identity</AlertTitle>
-            <AlertDescription className="text-accent/90">
-              To start staking, you need to verify you're a unique human with World ID. Tap here to verify.
+          <Alert variant="default" className="mb-6 bg-blue-50 border-primary/50 cursor-pointer" onClick={handleVerifyRedirect}>
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <AlertTitle className="font-semibold text-primary">Verify Your Identity</AlertTitle>
+            <AlertDescription className="text-primary/90">
+              To start staking, you need to verify you're a unique human with World ID. Tap here to get started.
             </AlertDescription>
           </Alert>
         )}
 
-        <Card className="w-full shadow-lg mb-6">
+        <Card className="w-full shadow-lg mb-6 bg-gradient-to-br from-primary via-blue-600 to-blue-700 text-white">
           <CardHeader>
-             <CardDescription>Total Staked Balance</CardDescription>
+             <CardDescription className="text-primary-foreground/80">Total Staked Balance</CardDescription>
             <CardTitle className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold">{stakedAmount.toFixed(4)}</span>
-              <span className="text-xl font-medium text-muted-foreground">{TOKEN_SYMBOL}</span>
+              <span className="text-4xl font-extrabold tracking-tight">{stakedAmount.toFixed(4)}</span>
+              <span className="text-xl font-medium text-primary-foreground/80">{TOKEN_SYMBOL}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-             <div className="flex justify-between items-center p-3 bg-primary/5 rounded-lg">
+             <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
                 <div>
-                    <p className="text-sm text-primary/80">Accumulated Rewards</p>
-                    <p className="font-semibold text-lg text-primary">{rewardsAccumulated.toFixed(6)} {TOKEN_SYMBOL}</p>
+                    <p className="text-sm text-primary-foreground/80">Accumulated Rewards</p>
+                    <p className="font-semibold text-lg text-white">{rewardsAccumulated.toFixed(6)} {TOKEN_SYMBOL}</p>
                 </div>
                 <Button
                     size="sm"
                     onClick={handleClaim}
                     disabled={!isVerified || rewardsAccumulated <= 0}
+                    className="bg-white/90 text-primary hover:bg-white"
                 >
                     <Award className="mr-2 h-4 w-4" /> Claim
                 </Button>
             </div>
-            <Separator />
-            <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Wallet className="w-4 h-4" /> Wallet Balance
-                </span>
-                <span className="font-semibold">{walletBalance.toFixed(2)} {TOKEN_SYMBOL}</span>
-            </div>
-             <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center gap-1.5">
-                    <HelpCircle className="w-4 h-4" /> Staking APR
-                </span>
-                <Badge variant="secondary">{apr}</Badge>
-            </div>
           </CardContent>
         </Card>
+        
+        <Card className="w-full shadow-lg">
+            <CardContent className="p-4 grid gap-3">
+                 <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                        <Wallet className="w-4 h-4" /> Wallet Balance
+                    </span>
+                    <span className="font-semibold">{walletBalance.toFixed(2)} {TOKEN_SYMBOL}</span>
+                </div>
+                 <Separator />
+                 <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                        <HelpCircle className="w-4 h-4" /> Staking APR
+                    </span>
+                    <Badge variant="secondary">{apr}</Badge>
+                </div>
+            </CardContent>
+        </Card>
+
       </div>
 
       <div className="fixed bottom-16 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t max-w-md mx-auto">

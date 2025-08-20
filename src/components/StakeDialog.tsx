@@ -76,7 +76,6 @@ export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }
   };
 
   const setMax = () => {
-    // Format to avoid scientific notation for small numbers and limit decimals
     setAmount(Number(balance.toFixed(6)).toString());
   }
 
@@ -90,26 +89,26 @@ export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="amount" className="text-right">
+          <div className="space-y-2">
+            <Label htmlFor="amount" className="text-left">
               Amount
             </Label>
-            <div className="col-span-3 relative">
+            <div className="relative">
                 <Input
                 id="amount"
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.0"
-                className="pr-16 text-lg"
+                className="pr-16 text-lg h-12"
                 />
-                <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 h-8" onClick={setMax}>Max</Button>
+                <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 h-9" onClick={setMax}>Set Max</Button>
             </div>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancel</Button>
-          <Button onClick={handleAction} disabled={isLoading || !amount}>
+          <Button onClick={handleAction} disabled={isLoading || !amount} className="w-full sm:w-auto">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isLoading ? `${action}ing...` : `Confirm ${action}`}
           </Button>

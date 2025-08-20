@@ -7,7 +7,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, UserCheck } from 'lucide-react';
+import { Loader2, UserCheck, LogIn } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 import { MiniKit } from '@worldcoin/minikit-js';
 
@@ -78,18 +78,18 @@ export default function AuthPage() {
     return (
         <AppLayout>
             <div className="container mx-auto max-w-md px-4 py-6 flex items-center justify-center min-h-[80vh]">
-                <Card className="w-full shadow-2xl">
+                <Card className="w-full shadow-lg border-2 border-gray-100">
                     <CardHeader className="text-center">
-                        <CardTitle className="text-2xl">Sign In with World ID</CardTitle>
-                        <CardDescription>
+                        <CardTitle className="text-2xl font-bold">Welcome to NotoriStake</CardTitle>
+                        <CardDescription className="text-muted-foreground">
                             {isAuthenticated 
                                 ? "You are successfully authenticated."
-                                : "Connect your wallet to access NotoriStake."
+                                : "Sign in with your World App wallet to continue."
                             }
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="flex flex-col items-center justify-center space-y-4 pt-4">
                             {isAuthenticated ? (
                                 <div className="flex flex-col items-center text-center">
                                     <UserCheck className="h-16 w-16 text-green-500 mb-4" />
@@ -100,10 +100,10 @@ export default function AuthPage() {
                                 <Button
                                     onClick={handleSignIn}
                                     disabled={isLoading}
-                                    className="w-full h-12 text-lg"
+                                    className="w-full h-14 text-lg font-semibold"
                                 >
-                                    {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                                    {isLoading ? 'Connecting...' : 'Sign In'}
+                                    {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <LogIn className="mr-2 h-5 w-5" />}
+                                    {isLoading ? 'Connecting...' : 'Sign In with World App'}
                                 </Button>
                             )}
                         </div>
