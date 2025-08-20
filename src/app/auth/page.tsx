@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, UserCheck, LogIn } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 import { MiniKit } from '@worldcoin/minikit-js';
-import { SiweMessage } from 'siwe';
 
 export default function AuthPage() {
     const { isAuthenticated, login, username } = useContext(AppContext);
@@ -33,9 +32,11 @@ export default function AuthPage() {
 
         if (!siweRes.ok) throw new Error('SIWE verification failed on the backend.');
         
-        const { isValid, username: authenticatedUsername } = await siweRes.json();
+        const { isValid } = await siweRes.json();
         
         if (isValid) {
+            // Fetch username directly from MiniKit after successful wallet auth
+            const authenticatedUsername = MiniKit.user.username || address;
             login(address, authenticatedUsername);
             toast({ title: "Success", description: `Signed in as ${authenticatedUsername}` });
             router.push('/');

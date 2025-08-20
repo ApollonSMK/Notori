@@ -10,15 +10,14 @@ async function verifySiweMessage(payload: any, nonce: string) {
     console.log("Verifying SIWE message:", payload.message);
     const messageIncludesNonce = payload.message.includes(`Nonce: ${nonce}`);
     
+    // In a real app, you would also verify the cryptographic signature against the address.
+    // For this example, we're just checking for a signature and a matching nonce in the message.
     if (payload.signature && messageIncludesNonce) {
-        // Here you would also verify the cryptographic signature against the address
         return {
             isValid: true,
-            // You would get the username from a service like ENS or a local DB
-            username: `vitalik.eth` // Mock username
         };
     }
-    return { isValid: false, username: null };
+    return { isValid: false };
 }
 interface IRequestPayload {
     payload: {
@@ -36,13 +35,13 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const { isValid, username } = await verifySiweMessage(payload, nonce);
+        const { isValid } = await verifySiweMessage(payload, nonce);
 
         if (isValid) {
             // Clear the nonce after successful verification
             cookies().delete("siwe-nonce");
-            // Here you would typically create a session for the user
-            return NextResponse.json({ isValid: true, username: username });
+            // Session creation would happen here.
+            return NextResponse.json({ isValid: true });
         } else {
             return NextResponse.json({ isValid: false, message: "Invalid signature." }, { status: 401 });
         }
