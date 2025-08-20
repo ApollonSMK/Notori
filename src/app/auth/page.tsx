@@ -10,7 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, UserCheck, LogIn } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 import { MiniKit } from '@worldcoin/minikit-js';
-import { BrowserProvider, SiweMessage } from 'ethers';
+import { BrowserProvider } from 'ethers';
+import { SiweMessage } from 'siwe';
 
 export default function AuthPage() {
     const { isAuthenticated, login, username } = useContext(AppContext);
