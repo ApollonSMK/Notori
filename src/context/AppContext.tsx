@@ -95,7 +95,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         tokenContract.decimals(),
         tokenContract.symbol()
       ]);
-
+      
       const tokenDecimals = Number(decimals);
       setStakedAmount(parseFloat(ethers.formatUnits(staked, tokenDecimals)));
       setRewardsAccumulated(parseFloat(ethers.formatUnits(rewards, tokenDecimals)));
@@ -107,38 +107,45 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } finally {
         setIsLoading(false);
     }
-  }, [tokenSymbol]);
+  }, []);
 
   useEffect(() => {
     const init = async () => {
-      await MiniKit.install();
-      setIsMounted(true);
+        if (typeof window !== "undefined") {
+            await MiniKit.install();
+            setIsMounted(true);
+            
+            const storedAddress = localStorage.getItem('notori_address');
+            const storedUsername = localStorage.getItem('notori_username');
+            const storedVerification = localStorage.getItem('notori_verified') === 'true';
 
-      const storedAddress = localStorage.getItem('notori_address');
-      const storedUsername = localStorage.getItem('notori_username');
-      const storedVerification = localStorage.getItem('notori_verified') === 'true';
-
-      if (storedAddress && storedUsername) {
-        setAddress(storedAddress);
-        setUsername(storedUsername);
-        setIsAuthenticated(true);
-        setIsVerified(storedVerification);
-        await refreshAllData(storedAddress);
-      } else {
-        setIsLoading(false);
-      }
+            if (storedAddress && storedUsername) {
+                setAddress(storedAddress);
+                setUsername(storedUsername);
+                setIsAuthenticated(true);
+                setIsVerified(storedVerification);
+            } else {
+                setIsLoading(false);
+            }
+        }
     };
     init();
-  }, [refreshAllData]);
+  }, []);
+
+  useEffect(() => {
+    if (address && isAuthenticated) {
+        refreshAllData(address);
+    }
+  }, [address, isAuthenticated, refreshAllData]);
 
 
-  const login = async (addr: string, user: string) => {
+  const login = (addr: string, user: string) => {
     localStorage.setItem('notori_address', addr);
     localStorage.setItem('notori_username', user);
     setAddress(addr);
     setUsername(user);
     setIsAuthenticated(true);
-    await refreshAllData(addr);
+    // Data refresh will be triggered by the useEffect watching `address`
   };
 
   const logout = () => {

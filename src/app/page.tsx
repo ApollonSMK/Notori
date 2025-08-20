@@ -15,6 +15,7 @@ import { Coins, HelpCircle, ShieldCheck, Download, Upload, Award, Wallet, Loader
 import { AppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
   const [isStakeDialogOpen, setIsStakeDialogOpen] = useState(false);
@@ -58,7 +59,7 @@ export default function Home() {
     }
   };
   
-  if (!isMounted || isLoading) {
+  if (!isMounted || (isLoading && !stakedAmount)) { // Show loader on initial load
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -67,6 +68,17 @@ export default function Home() {
       </AppLayout>
     )
   }
+  
+  if (!isAuthenticated) { // Handles the flicker before redirect
+    return (
+        <AppLayout>
+            <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        </AppLayout>
+    );
+  }
+
 
   return (
     <AppLayout>
@@ -98,7 +110,7 @@ export default function Home() {
           <CardHeader>
              <CardDescription className="text-muted-foreground">Total Staked Balance</CardDescription>
             <CardTitle className="flex items-baseline gap-2">
-              <span className="text-4xl font-extrabold tracking-tight">{stakedAmount.toFixed(4)}</span>
+              {isLoading ? <Skeleton className="h-10 w-40" /> : <span className="text-4xl font-extrabold tracking-tight">{stakedAmount.toFixed(4)}</span>}
               <span className="text-xl font-medium text-muted-foreground">{tokenSymbol}</span>
             </CardTitle>
           </CardHeader>
@@ -106,12 +118,12 @@ export default function Home() {
              <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                 <div>
                     <p className="text-sm text-muted-foreground">Accumulated Rewards</p>
-                    <p className="font-semibold text-lg">{rewardsAccumulated.toFixed(6)} {tokenSymbol}</p>
+                    {isLoading ? <Skeleton className="h-6 w-24 mt-1" /> : <p className="font-semibold text-lg">{rewardsAccumulated.toFixed(6)} {tokenSymbol}</p>}
                 </div>
                 <Button
                     size="sm"
                     onClick={handleClaim}
-                    disabled={!isVerified || rewardsAccumulated <= 0}
+                    disabled={!isVerified || rewardsAccumulated <= 0 || isLoading}
                     className="bg-primary/90 text-primary-foreground hover:bg-primary"
                 >
                     <Award className="mr-2 h-4 w-4" /> Claim
@@ -126,7 +138,7 @@ export default function Home() {
                     <span className="text-muted-foreground flex items-center gap-2">
                         <Wallet className="w-4 h-4" /> Wallet Balance
                     </span>
-                    <span className="font-semibold">{walletBalance.toFixed(2)} {tokenSymbol}</span>
+                    {isLoading ? <Skeleton className="h-5 w-20" /> : <span className="font-semibold">{walletBalance.toFixed(2)} {tokenSymbol}</span>}
                 </div>
                  <Separator />
                  <div className="flex justify-between items-center text-sm">
@@ -166,3 +178,6 @@ export default function Home() {
     </AppLayout>
   );
 }
+
+
+    
