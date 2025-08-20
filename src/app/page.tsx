@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck, Loader2, User, Award, Activity, Users, Wallet } from 'lucide-react';
+import { ShieldCheck, Loader2, Award, Activity, Users, Wallet } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 import { Progress } from '@/components/ui/progress';
 
@@ -21,7 +21,8 @@ export default function Home() {
     isLoading, 
     handleVerifyRedirect,
     isMounted,
-    address
+    address,
+    tokenBalances
   } = useContext(AppContext);
   const router = useRouter();
 
@@ -91,41 +92,70 @@ export default function Home() {
             </CardContent>
         </Card>
         
-        <Card className="w-full shadow-lg bg-card backdrop-blur-xl border border-white/10">
-            <CardHeader>
-              <CardTitle>Credibility Stats</CardTitle>
-              <CardDescription>Factors influencing your score.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-                 <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground flex items-center gap-3">
-                        <Award className="w-5 h-5 text-primary/80" /> World ID Verification
-                    </span>
-                    <Badge variant={isVerified ? "default" : "destructive"} className={isVerified ? 'bg-green-400/20 text-green-300' : 'bg-red-400/20 text-red-300'}>
-                      {isVerified ? 'Complete' : 'Missing'}
-                    </Badge>
-                </div>
-                 <Separator />
-                 <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground flex items-center gap-3">
-                        <Activity className="w-5 h-5 text-primary/80" /> On-chain Activity
-                    </span>
-                    <Badge variant="secondary">Moderate</Badge>
-                </div>
-                 <Separator />
-                 <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground flex items-center gap-3">
-                        <Users className="w-5 h-5 text-primary/80" /> Community Trust
-                    </span>
-                    <Badge variant="secondary">Building</Badge>
-                </div>
-            </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 gap-6">
+            <Card className="w-full shadow-lg bg-card backdrop-blur-xl border border-white/10">
+                <CardHeader>
+                  <CardTitle>Credibility Stats</CardTitle>
+                  <CardDescription>Factors influencing your score.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                     <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground flex items-center gap-3">
+                            <Award className="w-5 h-5 text-primary/80" /> World ID Verification
+                        </span>
+                        <Badge variant={isVerified ? "default" : "destructive"} className={isVerified ? 'bg-green-400/20 text-green-300' : 'bg-red-400/20 text-red-300'}>
+                          {isVerified ? 'Complete' : 'Missing'}
+                        </Badge>
+                    </div>
+                     <Separator />
+                     <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground flex items-center gap-3">
+                            <Activity className="w-5 h-5 text-primary/80" /> On-chain Activity
+                        </span>
+                        <Badge variant="secondary">Moderate</Badge>
+                    </div>
+                     <Separator />
+                     <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground flex items-center gap-3">
+                            <Users className="w-5 h-5 text-primary/80" /> Community Trust
+                        </span>
+                        <Badge variant="secondary">Building</Badge>
+                    </div>
+                </CardContent>
+            </Card>
 
+            <Card className="w-full shadow-lg bg-card backdrop-blur-xl border border-white/10">
+                <CardHeader>
+                  <CardTitle>Wallet Balance</CardTitle>
+                  <CardDescription>Your token holdings on World Chain.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                     {tokenBalances.length > 0 ? (
+                        tokenBalances.map((token, index) => (
+                           <React.Fragment key={token.address}>
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                      <Avatar className="h-8 w-8">
+                                          <AvatarImage data-ai-hint={`${token.symbol} logo`} src={`https://placehold.co/32x32.png`} />
+                                          <AvatarFallback>{token.symbol.charAt(0)}</AvatarFallback>
+                                      </Avatar>
+                                      <span className="font-medium">{token.symbol}</span>
+                                    </div>
+                                    <span className="font-mono text-right">{parseFloat(token.balance).toFixed(4)}</span>
+                                </div>
+                                {index < tokenBalances.length - 1 && <Separator />}
+                           </React.Fragment>
+                        ))
+                     ) : (
+                        <div className="text-center text-muted-foreground py-4">
+                            <Wallet className="mx-auto h-8 w-8 mb-2" />
+                            <p>No tokens found or balances are zero.</p>
+                        </div>
+                     )}
+                </CardContent>
+            </Card>
+        </div>
       </div>
     </AppLayout>
   );
 }
-    
-
-    
