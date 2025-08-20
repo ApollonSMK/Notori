@@ -10,8 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, UserCheck, LogIn } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 import { MiniKit } from '@worldcoin/minikit-js';
-import { BrowserProvider } from 'ethers';
-import { SiweMessage } from 'siwe';
 
 export default function AuthPage() {
     const { isAuthenticated, login, username } = useContext(AppContext);
@@ -48,46 +46,31 @@ export default function AuthPage() {
     const handleSignIn = async () => {
         setIsLoading(true);
 
+        if (!MiniKit.isInstalled()) {
+            toast({ 
+                title: "World App Not Found", 
+                description: "Please open this app inside World App to continue.",
+                variant: "destructive" 
+            });
+            setIsLoading(false);
+            return;
+        }
+
         try {
             // 1. Get nonce from our backend
             const nonceRes = await fetch('/api/nonce');
-            if (!nonceRes.ok) throw new Error('Failed to get nonce.');
+            if (!nonceRes.ok) throw new Error('Failed to get nonce from server.');
             const { nonce } = await nonceRes.json();
 
-            // 2. Check environment (World App vs. Desktop Browser)
-            if (MiniKit.isInstalled()) {
-                // WORLD APP FLOW
-                const { finalPayload } = await MiniKit.commandsAsync.walletAuth({ nonce });
+            // 2. Trigger World App wallet authentication
+            const { finalPayload } = await MiniKit.commandsAsync.walletAuth({ nonce });
 
-                if (finalPayload.status === 'success') {
-                    await performSiweLogin(finalPayload.address, finalPayload.message, finalPayload.signature);
-                } else {
-                     throw new Error('Wallet authentication was rejected or failed in World App.');
-                }
-            } else if (window.ethereum) {
-                // DESKTOP BROWSER (METAMASK) FLOW
-                const provider = new BrowserProvider(window.ethereum);
-                const signer = await provider.getSigner();
-                const address = await signer.getAddress();
-                
-                const siweMessage = new SiweMessage({
-                    domain: window.location.host,
-                    address: address,
-                    statement: 'Sign in to NotoriStake Mini App',
-                    uri: window.location.origin,
-                    version: '1',
-                    chainId: 4801, // World Chain Sepolia Testnet
-                    nonce: nonce,
-                });
-
-                const messageToSign = siweMessage.prepareMessage();
-                const signature = await signer.signMessage(messageToSign);
-
-                await performSiweLogin(address, messageToSign, signature);
+            // 3. Handle the response from World App
+            if (finalPayload.status === 'success') {
+                await performSiweLogin(finalPayload.address, finalPayload.message, finalPayload.signature);
             } else {
-                 toast({ title: "Error", description: "No wallet found. Please install World App or MetaMask.", variant: "destructive" });
+                 throw new Error(finalPayload.error_code || 'Wallet authentication was rejected or failed in World App.');
             }
-
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
             console.error("Sign-in error:", error);
