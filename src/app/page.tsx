@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck, Loader2, Award, Activity, Users, Wallet } from 'lucide-react';
+import { ShieldCheck, Loader2, Award, Activity, Users } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 import { Progress } from '@/components/ui/progress';
 
@@ -21,8 +21,7 @@ export default function Home() {
     isLoading, 
     handleVerifyRedirect,
     isMounted,
-    address,
-    tokenBalances
+    address
   } = useContext(AppContext);
   const router = useRouter();
 
@@ -121,37 +120,6 @@ export default function Home() {
                         </span>
                         <Badge variant="secondary">Building</Badge>
                     </div>
-                </CardContent>
-            </Card>
-
-            <Card className="w-full shadow-lg bg-card backdrop-blur-xl border border-white/10">
-                <CardHeader>
-                  <CardTitle>Wallet Balance</CardTitle>
-                  <CardDescription>Your token holdings on World Chain.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                     {tokenBalances.length > 0 ? (
-                        tokenBalances.map((token, index) => (
-                           <React.Fragment key={token.address}>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-3">
-                                      <Avatar className="h-8 w-8">
-                                          <AvatarImage data-ai-hint={`${token.symbol} logo`} src={`https://placehold.co/32x32.png`} />
-                                          <AvatarFallback>{token.symbol.charAt(0)}</AvatarFallback>
-                                      </Avatar>
-                                      <span className="font-medium">{token.symbol}</span>
-                                    </div>
-                                    <span className="font-mono text-right">{parseFloat(token.balance).toFixed(4)}</span>
-                                </div>
-                                {index < tokenBalances.length - 1 && <Separator />}
-                           </React.Fragment>
-                        ))
-                     ) : (
-                        <div className="text-center text-muted-foreground py-4">
-                            <Wallet className="mx-auto h-8 w-8 mb-2" />
-                            <p>No tokens found or balances are zero.</p>
-                        </div>
-                     )}
                 </CardContent>
             </Card>
         </div>
