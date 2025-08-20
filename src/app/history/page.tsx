@@ -4,7 +4,7 @@
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck, ExternalLink, ListX, History as HistoryIcon, Clock } from 'lucide-react';
+import { ShieldCheck, ExternalLink, ListX, History as HistoryIcon, Clock, UserCog } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
@@ -18,7 +18,7 @@ const mockHistory = [
 const typeDetails: { [key: string]: { icon: React.ElementType, className: string } } = {
     Verify: { icon: ShieldCheck, className: 'text-green-400 bg-green-400/10' },
     Login: { icon: Clock, className: 'text-blue-400 bg-blue-400/10' },
-    'Profile Update': { icon: HistoryIcon, className: 'text-purple-400 bg-purple-400/10' },
+    'Profile Update': { icon: UserCog, className: 'text-purple-400 bg-purple-400/10' },
 };
 
 export default function HistoryPage() {
@@ -39,7 +39,7 @@ export default function HistoryPage() {
             </Card>
           ) : (
             mockHistory.map((item) => {
-              const details = typeDetails[item.type as keyof typeof typeDetails];
+              const details = typeDetails[item.type as keyof typeof typeDetails] || { icon: HistoryIcon, className: 'text-gray-400 bg-gray-400/10' };
               
               return (
                 <Card key={item.id} className="shadow-lg overflow-hidden bg-card backdrop-blur-xl border-white/10">
@@ -82,5 +82,3 @@ export default function HistoryPage() {
     </AppLayout>
   );
 }
-
-    
