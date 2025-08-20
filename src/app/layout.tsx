@@ -1,11 +1,12 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AppProvider } from '@/context/AppContext';
 
 export const metadata: Metadata = {
-  title: 'NotoriStake Mini',
-  description: 'Stake tokens and earn rewards on World Chain.',
+  title: 'Notori Credibility',
+  description: 'Check and build your on-chain credibility profile.',
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -42,3 +43,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    

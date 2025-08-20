@@ -3,14 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, History, User, Rocket } from 'lucide-react';
+import { User, History, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/', label: 'Home', icon: Home },
+  { href: '/', label: 'Profile', icon: User },
   { href: '/history', label: 'History', icon: History },
-  { href: '/boosts', label: 'Boosts', icon: Rocket },
-  { href: '/profile', label: 'Profile', icon: User },
+  { href: '/profile', label: 'Settings', icon: Settings },
 ];
 
 export function BottomNav() {
@@ -40,3 +39,5 @@ export function BottomNav() {
     </nav>
   );
 }
+
+    

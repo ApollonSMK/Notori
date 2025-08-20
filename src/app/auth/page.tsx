@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, UserCheck, LogIn } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 import { MiniKit } from '@worldcoin/minikit-js';
+import { SiweMessage } from 'siwe';
 
 export default function AuthPage() {
     const { isAuthenticated, login, username } = useContext(AppContext);
@@ -57,15 +58,12 @@ export default function AuthPage() {
         }
 
         try {
-            // 1. Get nonce from our backend
             const nonceRes = await fetch('/api/nonce');
             if (!nonceRes.ok) throw new Error('Failed to get nonce from server.');
             const { nonce } = await nonceRes.json();
 
-            // 2. Trigger World App wallet authentication
             const { finalPayload } = await MiniKit.commandsAsync.walletAuth({ nonce });
 
-            // 3. Handle the response from World App
             if (finalPayload.status === 'success') {
                 await performSiweLogin(finalPayload.address, finalPayload.message, finalPayload.signature);
             } else {
@@ -89,11 +87,11 @@ export default function AuthPage() {
             <div className="container mx-auto max-w-md px-4 py-6 flex items-center justify-center min-h-[80vh]">
                 <Card className="w-full shadow-lg bg-card/80 backdrop-blur-xl border border-white/10">
                     <CardHeader className="text-center">
-                        <CardTitle className="text-2xl font-bold">Welcome to NotoriStake</CardTitle>
+                        <CardTitle className="text-2xl font-bold">Notori Credibility</CardTitle>
                         <CardDescription className="text-muted-foreground">
                             {isAuthenticated 
                                 ? "You are successfully authenticated."
-                                : "Sign in with your wallet to continue."
+                                : "Sign in with your wallet to build your on-chain credibility."
                             }
                         </CardDescription>
                     </CardHeader>
@@ -122,3 +120,5 @@ export default function AuthPage() {
         </AppLayout>
     );
 }
+
+    

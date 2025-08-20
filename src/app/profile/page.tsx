@@ -4,56 +4,27 @@
 import { useContext } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Bell, ChevronRight, LogOut, ShieldQuestion, Star, TrendingUp, User } from 'lucide-react';
+import { Bell, ChevronRight, LogOut, ShieldQuestion, Settings } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 
-const StatCard = ({ icon: Icon, label, value, unit }: { icon: React.ElementType, label: string, value: string, unit: string }) => (
-    <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-primary/10 rounded-full">
-            <Icon className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="font-bold text-lg">{value} <span className="text-sm font-normal text-muted-foreground">{unit}</span></p>
-        </div>
-    </div>
-);
-
-export default function ProfilePage() {
-  const { username, stakedAmount, rewardsAccumulated, logout, tokenSymbol } = useContext(AppContext);
+export default function SettingsPage() {
+  const { logout } = useContext(AppContext);
   
   return (
     <AppLayout>
       <div className="container mx-auto max-w-md px-4 py-6">
         <header className="flex items-center gap-4 mb-6">
-            <User className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-bold">Profile</h1>
+            <Settings className="w-8 h-8 text-primary" />
+            <h1 className="text-2xl font-bold">Settings</h1>
         </header>
 
-        <Card className="mb-6 shadow-xl overflow-hidden bg-card backdrop-blur-xl border border-white/10">
-            <div className="p-6 bg-black/10">
-                <div className="flex flex-col items-center text-center">
-                    <Avatar className="h-24 w-24 border-4 border-background shadow-lg mb-3">
-                        <AvatarImage data-ai-hint="user avatar" src={`https://placehold.co/96x96.png`} alt={username ?? 'user'} />
-                        <AvatarFallback>{username?.substring(0, 2).toUpperCase() ?? 'U'}</AvatarFallback>
-                    </Avatar>
-                    <CardTitle className="text-2xl">{username ?? 'Not Connected'}</CardTitle>
-                    <CardDescription>Member since {new Date().toLocaleDateString()}</CardDescription>
-                </div>
-            </div>
-            <div className="p-4 grid grid-cols-2 gap-4">
-                <StatCard icon={TrendingUp} label="Total Staked" value={stakedAmount.toFixed(2)} unit={tokenSymbol} />
-                <StatCard icon={Star} label="Total Rewards" value={rewardsAccumulated.toFixed(2)} unit={tokenSymbol} />
-            </div>
-        </Card>
-
-        <Card className="bg-card backdrop-blur-xl border border-white/10">
+        <Card className="mb-6 bg-card backdrop-blur-xl border border-white/10">
             <CardHeader>
                 <CardTitle className="text-lg">Preferences</CardTitle>
+                <CardDescription>Manage your app settings and notifications.</CardDescription>
             </CardHeader>
             <CardContent className="p-2">
                 <div className="flex flex-col">
@@ -90,3 +61,5 @@ export default function ProfilePage() {
     </AppLayout>
   );
 }
+
+    
