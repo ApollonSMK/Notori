@@ -19,7 +19,7 @@ const ERC20_ABI = [
     "function symbol() view returns (string)",
 ];
 
-const WORLDCHAIN_RPC_URL = "https://worldchain-sepolia.g.alchemy.com/public";
+const WORLDCHAIN_RPC_URL = "https://worldchain-mainnet.g.alchemy.com/public";
 
 interface TokenBalance {
     symbol: string;
