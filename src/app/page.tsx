@@ -9,10 +9,9 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck, Loader2, User, Award, Activity, Users } from 'lucide-react';
+import { ShieldCheck, Loader2, User, Award, Activity, Users, Wallet } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
   const { 
@@ -32,7 +31,7 @@ export default function Home() {
     }
   }, [isLoading, isAuthenticated, router, isMounted]);
   
-  if (!isMounted || (isLoading && !username)) {
+  if (!isMounted || isLoading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -43,13 +42,12 @@ export default function Home() {
   }
   
   if (!isAuthenticated) {
-    return (
-        <AppLayout>
-            <div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        </AppLayout>
-    );
+    return null; // or a dedicated loading/redirecting component
+  }
+
+  const formatAddress = (addr: string | null) => {
+    if (!addr) return '';
+    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   }
 
   const credibilityScore = isVerified ? 850 : 450;
@@ -60,14 +58,16 @@ export default function Home() {
     <AppLayout>
       <div className="container mx-auto max-w-md px-4 py-6">
         <header className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-             <User className="text-primary h-7 w-7" />
-            <h1 className="text-xl font-bold">Credibility Profile</h1>
-          </div>
-          <Avatar className="h-10 w-10 border-2 border-primary/20">
-            <AvatarImage data-ai-hint="user avatar" src={`https://placehold.co/40x40.png`} alt={username ?? 'user'} />
-            <AvatarFallback>{username?.substring(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
+            <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12 border-2 border-primary/20">
+                    <AvatarImage data-ai-hint="user avatar" src={`https://placehold.co/48x48.png`} alt={username ?? 'user'} />
+                    <AvatarFallback>{username?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                    <h1 className="text-xl font-bold">{username}</h1>
+                    <p className="text-sm text-muted-foreground font-mono">{formatAddress(address)}</p>
+                </div>
+            </div>
         </header>
         
         {!isVerified && (
