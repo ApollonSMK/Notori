@@ -8,6 +8,8 @@ import NotoriStakeABI from '@/abi/NotoriStake.json';
 import { useRouter } from 'next/navigation';
 
 const RPC_URL = process.env.NEXT_PUBLIC_WORLDCHAIN_RPC!;
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
+const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ADDRESS!;
 
 // A simple ERC20 ABI snippet to get the balance
 const ERC20_ABI = [
@@ -33,6 +35,7 @@ interface AppState {
   unstake: (amount: string) => Promise<void>;
   claimRewards: () => Promise<void>;
   handleVerifyRedirect: () => void;
+  refreshAllData: (userAddress: string) => Promise<void>;
 }
 
 export const AppContext = createContext<AppState>({
@@ -43,7 +46,7 @@ export const AppContext = createContext<AppState>({
   walletBalance: 0,
   stakedAmount: 0,
   rewardsAccumulated: 0,
-  apr: "0%",
+  apr: "12.5%",
   isLoading: true,
   isMounted: false,
   login: () => {},
@@ -53,6 +56,7 @@ export const AppContext = createContext<AppState>({
   unstake: async () => {},
   claimRewards: async () => {},
   handleVerifyRedirect: () => {},
+  refreshAllData: async () => {},
 });
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
@@ -72,16 +76,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setIsMounted(true);
   }, []);
 
-  const fetchContractData = useCallback(async (userAddress: string) => {
-    const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
-    const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ADDRESS!;
-
+  const refreshAllData = useCallback(async (userAddress: string) => {
     if (!RPC_URL || !CONTRACT_ADDRESS || !TOKEN_ADDRESS) {
-      console.error("RPC URL, Contract Address, or Token Address is not set.");
+      console.error("Environment variables for contract/token are not set.");
       setIsLoading(false);
       return;
     }
     
+    setIsLoading(true);
     try {
       const provider = new ethers.JsonRpcProvider(RPC_URL);
       const stakeContract = new ethers.Contract(CONTRACT_ADDRESS, NotoriStakeABI, provider);
@@ -118,11 +120,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setUsername(storedUsername);
         setIsAuthenticated(true);
         setIsVerified(storedVerification);
-        await fetchContractData(storedAddress);
+        await refreshAllData(storedAddress);
     } else {
         setIsLoading(false);
     }
-  }, [fetchContractData]);
+  }, [refreshAllData]);
 
   useEffect(() => {
     if (isMounted) {
@@ -131,13 +133,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [isMounted, initAuth]);
 
 
-  const login = (addr: string, user: string) => {
+  const login = async (addr: string, user: string) => {
     localStorage.setItem('notori_address', addr);
     localStorage.setItem('notori_username', user);
     setAddress(addr);
     setUsername(user);
     setIsAuthenticated(true);
-    fetchContractData(addr);
+    await refreshAllData(addr);
   };
 
   const logout = () => {
@@ -148,6 +150,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setUsername(null);
     setIsAuthenticated(false);
     setIsVerified(false);
+    setWalletBalance(0);
+    setStakedAmount(0);
+    setRewardsAccumulated(0);
+    router.push('/auth');
   };
 
   const setVerifiedStatus = (status: boolean) => {
@@ -156,9 +162,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const sendTx = async (functionName: string, args: any[]) => {
-    const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
-    const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ADDRESS!;
-
     if (!MiniKit.isInstalled()) throw new Error("MiniKit not installed");
     if (!CONTRACT_ADDRESS || !TOKEN_ADDRESS) throw new Error("Contract or Token address not configured.");
 
@@ -192,31 +195,38 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         throw new Error(finalPayload.error_code || 'Transaction failed.');
     }
 
+    // TODO: Poll for transaction receipt for better UX
     console.log('Transaction sent:', finalPayload.transaction_id);
     return finalPayload.transaction_id;
   }
 
   const stake = async (amount: string) => {
+    if (!address) throw new Error("User not authenticated");
     const provider = new ethers.JsonRpcProvider(RPC_URL);
-    const tokenContract = new ethers.Contract(process.env.NEXT_PUBLIC_TOKEN_ADDRESS!, ERC20_ABI, provider);
+    const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, provider);
     const decimals = await tokenContract.decimals();
     const amountInWei = ethers.parseUnits(amount, Number(decimals)).toString();
     await sendTx('stake', [amountInWei]);
-    if(address) await fetchContractData(address);
+    await new Promise(resolve => setTimeout(resolve, 3000)); // optimistic wait
+    await refreshAllData(address);
   };
 
   const unstake = async (amount: string) => {
-     const provider = new ethers.JsonRpcProvider(RPC_URL);
-    const tokenContract = new ethers.Contract(process.env.NEXT_PUBLIC_TOKEN_ADDRESS!, ERC20_ABI, provider);
+    if (!address) throw new Error("User not authenticated");
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
+    const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, provider);
     const decimals = await tokenContract.decimals();
     const amountInWei = ethers.parseUnits(amount, Number(decimals)).toString();
     await sendTx('unstake', [amountInWei]);
-     if(address) await fetchContractData(address);
+    await new Promise(resolve => setTimeout(resolve, 3000)); // optimistic wait
+    await refreshAllData(address);
   };
 
   const claimRewards = async () => {
+    if (!address) throw new Error("User not authenticated");
     await sendTx('claimRewards', []);
-    if(address) await fetchContractData(address);
+    await new Promise(resolve => setTimeout(resolve, 3000)); // optimistic wait
+    await refreshAllData(address);
   };
 
   const handleVerifyRedirect = () => {
@@ -241,9 +251,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     unstake,
     claimRewards,
     handleVerifyRedirect,
+    refreshAllData,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
-
-    
