@@ -109,42 +109,36 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [tokenSymbol]);
 
-  // Effect to handle initialization and local storage
   useEffect(() => {
-    const initApp = async () => {
-        await MiniKit.install();
-        const storedAddress = localStorage.getItem('notori_address');
-        const storedUsername = localStorage.getItem('notori_username');
-        const storedVerification = localStorage.getItem('notori_verified') === 'true';
+    const init = async () => {
+      await MiniKit.install();
+      setIsMounted(true);
 
-        if (storedAddress && storedUsername) {
-            setAddress(storedAddress);
-            setUsername(storedUsername);
-            setIsAuthenticated(true);
-            setIsVerified(storedVerification);
-        } else {
-            setIsLoading(false); // Only stop loading if not authenticated from storage
-        }
-        setIsMounted(true);
+      const storedAddress = localStorage.getItem('notori_address');
+      const storedUsername = localStorage.getItem('notori_username');
+      const storedVerification = localStorage.getItem('notori_verified') === 'true';
+
+      if (storedAddress && storedUsername) {
+        setAddress(storedAddress);
+        setUsername(storedUsername);
+        setIsAuthenticated(true);
+        setIsVerified(storedVerification);
+        await refreshAllData(storedAddress);
+      } else {
+        setIsLoading(false);
+      }
     };
-    initApp();
-  }, []);
-
-  // Effect to fetch data when address is set
-  useEffect(() => {
-    if (address) {
-      refreshAllData(address);
-    }
-  }, [address, refreshAllData]);
+    init();
+  }, [refreshAllData]);
 
 
-  const login = (addr: string, user: string) => {
+  const login = async (addr: string, user: string) => {
     localStorage.setItem('notori_address', addr);
     localStorage.setItem('notori_username', user);
     setAddress(addr);
     setUsername(user);
     setIsAuthenticated(true);
-    // Data fetching will be triggered by the useEffect that watches `address`
+    await refreshAllData(addr);
   };
 
   const logout = () => {
@@ -194,7 +188,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           nonce: Date.now().toString(),
           deadline: (Math.floor(Date.now() / 1000) + 3600).toString(),
       }];
-      // The actual amount in wei is the first argument, followed by the signature placeholder
+      
       txPayload.transaction[0].args = [amountToStake, 'PERMIT2_SIGNATURE_PLACEHOLDER_0'];
     }
 
