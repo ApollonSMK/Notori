@@ -111,11 +111,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     await MiniKit.install();
     const storedAddress = localStorage.getItem('notori_address');
     const storedUsername = localStorage.getItem('notori_username');
+    const storedVerification = localStorage.getItem('notori_verified') === 'true';
 
     if (storedAddress && storedUsername) {
         setAddress(storedAddress);
         setUsername(storedUsername);
         setIsAuthenticated(true);
+        setIsVerified(storedVerification);
         await fetchContractData(storedAddress);
     } else {
         setIsLoading(false);
@@ -141,10 +143,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     localStorage.removeItem('notori_address');
     localStorage.removeItem('notori_username');
+    localStorage.removeItem('notori_verified');
     setAddress(null);
     setUsername(null);
     setIsAuthenticated(false);
     setIsVerified(false);
+  };
+
+  const setVerifiedStatus = (status: boolean) => {
+    setIsVerified(status);
+    localStorage.setItem('notori_verified', status.toString());
   };
 
   const sendTx = async (functionName: string, args: any[]) => {
@@ -189,13 +197,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const stake = async (amount: string) => {
-    const amountInWei = ethers.parseEther(amount).toString();
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
+    const tokenContract = new ethers.Contract(process.env.NEXT_PUBLIC_TOKEN_ADDRESS!, ERC20_ABI, provider);
+    const decimals = await tokenContract.decimals();
+    const amountInWei = ethers.parseUnits(amount, Number(decimals)).toString();
     await sendTx('stake', [amountInWei]);
     if(address) await fetchContractData(address);
   };
 
   const unstake = async (amount: string) => {
-    const amountInWei = ethers.parseEther(amount).toString();
+     const provider = new ethers.JsonRpcProvider(RPC_URL);
+    const tokenContract = new ethers.Contract(process.env.NEXT_PUBLIC_TOKEN_ADDRESS!, ERC20_ABI, provider);
+    const decimals = await tokenContract.decimals();
+    const amountInWei = ethers.parseUnits(amount, Number(decimals)).toString();
     await sendTx('unstake', [amountInWei]);
      if(address) await fetchContractData(address);
   };
@@ -222,7 +236,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     isMounted,
     login,
     logout,
-    setVerifiedStatus: setIsVerified,
+    setVerifiedStatus,
     stake,
     unstake,
     claimRewards,
@@ -231,3 +245,5 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
+
+    
