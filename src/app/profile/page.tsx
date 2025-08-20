@@ -34,11 +34,11 @@ export default function ProfilePage() {
             <h1 className="text-2xl font-bold">Profile</h1>
         </header>
 
-        <Card className="mb-6 shadow-xl overflow-hidden">
-            <div className="p-6 bg-primary/5">
+        <Card className="mb-6 shadow-xl overflow-hidden bg-card backdrop-blur-xl border border-white/10">
+            <div className="p-6 bg-black/10">
                 <div className="flex flex-col items-center text-center">
                     <Avatar className="h-24 w-24 border-4 border-background shadow-lg mb-3">
-                        <AvatarImage data-ai-hint="user avatar" src={`https://placehold.co/80x80.png`} alt={username ?? 'user'} />
+                        <AvatarImage data-ai-hint="user avatar" src={`https://placehold.co/96x96.png`} alt={username ?? 'user'} />
                         <AvatarFallback>{username?.substring(0, 2).toUpperCase() ?? 'U'}</AvatarFallback>
                     </Avatar>
                     <CardTitle className="text-2xl">{username ?? 'Not Connected'}</CardTitle>
@@ -51,13 +51,13 @@ export default function ProfilePage() {
             </div>
         </Card>
 
-        <Card>
+        <Card className="bg-card backdrop-blur-xl border border-white/10">
             <CardHeader>
                 <CardTitle className="text-lg">Preferences</CardTitle>
             </CardHeader>
             <CardContent className="p-2">
                 <div className="flex flex-col">
-                    <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors">
                         <div className="flex items-center gap-4">
                             <Bell className="h-5 w-5 text-muted-foreground" />
                             <span className="font-medium">Push Notifications</span>
@@ -65,7 +65,7 @@ export default function ProfilePage() {
                         <Switch defaultChecked />
                     </div>
                     <Separator />
-                     <button className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors text-left">
+                     <button className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors text-left">
                         <div className="flex items-center gap-4">
                             <ShieldQuestion className="h-5 w-5 text-muted-foreground" />
                             <span className="font-medium">Help & Support</span>
@@ -79,7 +79,7 @@ export default function ProfilePage() {
         <div className="mt-6">
              <Button 
                 variant="ghost" 
-                className="w-full justify-center p-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="w-full justify-center p-3 text-red-400 hover:text-red-400 hover:bg-red-400/10"
                 onClick={logout}
              >
                 <LogOut className="h-5 w-5 mr-2" />

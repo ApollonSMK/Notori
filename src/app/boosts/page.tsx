@@ -6,10 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Rocket, Zap, TrendingUp, ShieldCheck } from 'lucide-react';
 
 const boosts = [
-    { id: 1, name: '2x Rewards Boost', description: 'Duration: 24 hours', cost: 5, symbol: 'WLD', icon: Rocket, color: 'text-purple-500' },
-    { id: 2, name: '5% APR Increase', description: 'Duration: 7 days', cost: 15, symbol: 'WLD', icon: TrendingUp, color: 'text-green-500' },
-    { id: 3, name: 'Instant Claim', description: 'Skip the reward waiting period', cost: 2, symbol: 'USDC', icon: Zap, color: 'text-yellow-500' },
-    { id: 4, name: 'Stake Insurance', description: 'Protect your stake for 30 days', cost: 10, symbol: 'USDC', icon: ShieldCheck, color: 'text-blue-500' },
+    { id: 1, name: '2x Rewards Boost', description: 'Duration: 24 hours', cost: 5, symbol: 'WLD', icon: Rocket, color: 'text-purple-400' },
+    { id: 2, name: '5% APR Increase', description: 'Duration: 7 days', cost: 15, symbol: 'WLD', icon: TrendingUp, color: 'text-green-400' },
+    { id: 3, name: 'Instant Claim', description: 'Skip the reward waiting period', cost: 2, symbol: 'USDC', icon: Zap, color: 'text-yellow-400' },
+    { id: 4, name: 'Stake Insurance', description: 'Protect your stake for 30 days', cost: 10, symbol: 'USDC', icon: ShieldCheck, color: 'text-blue-400' },
 ]
 
 export default function BoostsPage() {
@@ -30,10 +30,10 @@ export default function BoostsPage() {
             {boosts.map((boost) => {
                 const Icon = boost.icon;
                 return (
-                    <Card key={boost.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <Card key={boost.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card/80 backdrop-blur-xl border-white/10">
                         <CardHeader>
                             <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-full bg-muted`}>
+                                <div className={`p-3 rounded-full bg-black/20`}>
                                   <Icon className={`w-6 h-6 ${boost.color}`} />
                                 </div>
                                 <div className="flex-1">

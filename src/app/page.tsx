@@ -14,6 +14,7 @@ import { StakeDialog } from '@/components/StakeDialog';
 import { Coins, HelpCircle, ShieldCheck, Download, Upload, Award, Wallet, Loader2 } from 'lucide-react';
 import { AppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const TOKEN_SYMBOL = "WLD";
 
@@ -85,7 +86,7 @@ export default function Home() {
         </header>
         
         {!isVerified && (
-          <Alert variant="default" className="mb-6 bg-blue-50 border-primary/50 cursor-pointer" onClick={handleVerifyRedirect}>
+          <Alert variant="default" className="mb-6 bg-primary/10 border-primary/20 cursor-pointer" onClick={handleVerifyRedirect}>
             <ShieldCheck className="h-4 w-4 text-primary" />
             <AlertTitle className="font-semibold text-primary">Verify Your Identity</AlertTitle>
             <AlertDescription className="text-primary/90">
@@ -94,25 +95,25 @@ export default function Home() {
           </Alert>
         )}
 
-        <Card className="w-full shadow-lg mb-6 bg-gradient-to-br from-primary via-blue-600 to-blue-700 text-white">
+        <Card className="w-full shadow-2xl mb-6 bg-card backdrop-blur-xl border border-white/10 overflow-hidden">
           <CardHeader>
-             <CardDescription className="text-primary-foreground/80">Total Staked Balance</CardDescription>
+             <CardDescription className="text-muted-foreground">Total Staked Balance</CardDescription>
             <CardTitle className="flex items-baseline gap-2">
               <span className="text-4xl font-extrabold tracking-tight">{stakedAmount.toFixed(4)}</span>
-              <span className="text-xl font-medium text-primary-foreground/80">{TOKEN_SYMBOL}</span>
+              <span className="text-xl font-medium text-muted-foreground">{TOKEN_SYMBOL}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-             <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+             <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                 <div>
-                    <p className="text-sm text-primary-foreground/80">Accumulated Rewards</p>
-                    <p className="font-semibold text-lg text-white">{rewardsAccumulated.toFixed(6)} {TOKEN_SYMBOL}</p>
+                    <p className="text-sm text-muted-foreground">Accumulated Rewards</p>
+                    <p className="font-semibold text-lg">{rewardsAccumulated.toFixed(6)} {TOKEN_SYMBOL}</p>
                 </div>
                 <Button
                     size="sm"
                     onClick={handleClaim}
                     disabled={!isVerified || rewardsAccumulated <= 0}
-                    className="bg-white/90 text-primary hover:bg-white"
+                    className="bg-primary/90 text-primary-foreground hover:bg-primary"
                 >
                     <Award className="mr-2 h-4 w-4" /> Claim
                 </Button>
@@ -120,7 +121,7 @@ export default function Home() {
           </CardContent>
         </Card>
         
-        <Card className="w-full shadow-lg">
+        <Card className="w-full shadow-lg bg-card backdrop-blur-xl border border-white/10">
             <CardContent className="p-4 grid gap-3">
                  <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground flex items-center gap-2">
@@ -140,9 +141,9 @@ export default function Home() {
 
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t max-w-md mx-auto">
+      <div className="fixed bottom-16 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t border-white/10 max-w-md mx-auto">
           <div className="grid grid-cols-2 gap-3 w-full">
-            <Button className="w-full h-12 text-lg" variant="outline" onClick={() => setIsUnstakeDialogOpen(true)} disabled={!isVerified || stakedAmount <= 0}>
+            <Button className="w-full h-12 text-lg" variant="secondary" onClick={() => setIsUnstakeDialogOpen(true)} disabled={!isVerified || stakedAmount <= 0}>
               <Download className="mr-2 h-5 w-5" /> Unstake
             </Button>
             <Button className="w-full h-12 text-lg" variant="default" onClick={() => setIsStakeDialogOpen(true)} disabled={!isVerified}>

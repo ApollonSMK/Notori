@@ -5,7 +5,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Download, Upload, Award, ShieldCheck, ExternalLink, ListX } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 const mockHistory = [
@@ -19,8 +18,8 @@ const mockHistory = [
 const typeDetails: { [key: string]: { icon: React.ElementType, className: string } } = {
     Stake: { icon: Upload, className: 'text-primary bg-primary/10' },
     Unstake: { icon: Download, className: 'text-foreground bg-secondary' },
-    Claim: { icon: Award, className: 'text-accent-foreground bg-accent' },
-    Verify: { icon: ShieldCheck, className: 'text-green-600 bg-green-100' },
+    Claim: { icon: Award, className: 'text-green-400 bg-green-400/10' },
+    Verify: { icon: ShieldCheck, className: 'text-blue-400 bg-blue-400/10' },
 };
 
 export default function HistoryPage() {
@@ -34,7 +33,7 @@ export default function HistoryPage() {
 
         <div className="space-y-4">
           {mockHistory.length === 0 ? (
-            <Card className="flex flex-col items-center justify-center p-10 text-center">
+            <Card className="flex flex-col items-center justify-center p-10 text-center bg-card backdrop-blur-xl border border-white/10">
               <ListX className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold">No History Yet</h3>
               <p className="text-muted-foreground">Your transactions will appear here once you start staking.</p>
@@ -45,7 +44,7 @@ export default function HistoryPage() {
               const isPositive = item.type === 'Stake' || item.type === 'Claim';
               
               return (
-                <Card key={item.id} className="shadow-md overflow-hidden">
+                <Card key={item.id} className="shadow-lg overflow-hidden bg-card backdrop-blur-xl border-white/10">
                     <CardHeader className="p-4">
                         <div className="flex items-center gap-4">
                             <div className={cn("rounded-full p-2.5 flex items-center justify-center w-12 h-12", details.className)}>
@@ -60,23 +59,23 @@ export default function HistoryPage() {
                             {item.amount !== null ? (
                                 <div className={cn(
                                     "text-lg font-bold",
-                                    isPositive ? "text-green-600" : "text-destructive"
+                                    isPositive ? "text-green-400" : "text-red-400"
                                 )}>
                                     {isPositive ? '+' : '-'} {item.amount} {item.symbol}
                                 </div>
                             ) : (
-                                <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+                                <Badge variant="secondary" className="bg-blue-400/10 text-blue-300 border-blue-400/20">
                                     {item.symbol}
                                 </Badge>
                             )}
                         </div>
                     </CardHeader>
                     <Separator />
-                    <CardFooter className="p-3 bg-muted/50 flex justify-between items-center text-xs">
+                    <CardFooter className="p-3 bg-black/10 flex justify-between items-center text-xs">
                         <Badge variant={item.status === 'Completed' ? 'default' : 'secondary'} 
                             className={cn(
-                                item.status === 'Completed' && 'bg-green-100 text-green-700 border-green-200',
-                                item.status === 'Pending' && 'bg-amber-100 text-amber-800 border-amber-200',
+                                item.status === 'Completed' && 'bg-green-400/10 text-green-300 border-green-400/20',
+                                item.status === 'Pending' && 'bg-amber-400/10 text-amber-300 border-amber-400/20',
                             )}>
                             {item.status}
                         </Badge>

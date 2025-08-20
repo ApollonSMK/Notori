@@ -86,7 +86,7 @@ export default function VerifyPage() {
     return (
         <AppLayout>
             <div className="container mx-auto max-w-md px-4 py-6 flex items-center justify-center min-h-[80vh]">
-                <Card className="w-full shadow-2xl">
+                <Card className="w-full shadow-2xl bg-card/80 backdrop-blur-xl border border-white/10">
                     <CardHeader className="text-center">
                         <CardTitle className="text-2xl">Human Verification</CardTitle>
                         <CardDescription>

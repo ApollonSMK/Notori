@@ -81,7 +81,7 @@ export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isLoading) onOpenChange(isOpen); }}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-card/80 backdrop-blur-xl border-white/10">
         <DialogHeader>
           <DialogTitle>{action} {tokenSymbol}</DialogTitle>
           <DialogDescription>
@@ -100,14 +100,14 @@ export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.0"
-                className="pr-16 text-lg h-12"
+                className="pr-16 text-lg h-12 bg-input border-white/10"
                 />
                 <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 h-9" onClick={setMax}>Set Max</Button>
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancel</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancel</Button>
           <Button onClick={handleAction} disabled={isLoading || !amount} className="w-full sm:w-auto">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isLoading ? `${action}ing...` : `Confirm ${action}`}
