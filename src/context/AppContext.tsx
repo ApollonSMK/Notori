@@ -35,7 +35,6 @@ interface AppState {
   unstake: (amount: string) => Promise<void>;
   claimRewards: () => Promise<void>;
   handleVerifyRedirect: () => void;
-  refreshAllData: (userAddress: string) => Promise<void>;
 }
 
 export const AppContext = createContext<AppState>({
@@ -56,7 +55,6 @@ export const AppContext = createContext<AppState>({
   unstake: async () => {},
   claimRewards: async () => {},
   handleVerifyRedirect: () => {},
-  refreshAllData: async () => {},
 });
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
@@ -71,10 +69,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const refreshAllData = useCallback(async (userAddress: string) => {
     if (!RPC_URL || !CONTRACT_ADDRESS || !TOKEN_ADDRESS) {
@@ -127,19 +121,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [refreshAllData]);
 
   useEffect(() => {
-    if (isMounted) {
-        initAuth();
-    }
-  }, [isMounted, initAuth]);
+    setIsMounted(true);
+    initAuth();
+  }, [initAuth]);
 
 
-  const login = async (addr: string, user: string) => {
+  const login = (addr: string, user: string) => {
     localStorage.setItem('notori_address', addr);
     localStorage.setItem('notori_username', user);
     setAddress(addr);
     setUsername(user);
     setIsAuthenticated(true);
-    await refreshAllData(addr);
+    refreshAllData(addr);
   };
 
   const logout = () => {
@@ -161,20 +154,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('notori_verified', status.toString());
   };
 
-  const sendTx = async (functionName: string, args: any[]) => {
+  const sendTx = async (functionName: string, args: any[], needsPermit: boolean = false) => {
     if (!MiniKit.isInstalled()) throw new Error("MiniKit not installed");
     if (!CONTRACT_ADDRESS || !TOKEN_ADDRESS) throw new Error("Contract or Token address not configured.");
 
     const txPayload: SendTransactionInput = {
         transaction: [{
             address: CONTRACT_ADDRESS,
-            abi: NotoriStakeABI,
+            abi: NotoriStakeABI.filter(item => item.type === 'function' && item.name === functionName),
             functionName,
             args,
         }]
     };
     
-    if(functionName === 'stake') {
+    if (needsPermit) {
         const amountToStake = args[0];
         txPayload.permit2 = [{
             permitted: {
@@ -185,7 +178,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             nonce: Date.now().toString(),
             deadline: (Math.floor(Date.now() / 1000) + 3600).toString(),
         }];
-        // The signature placeholder is now the second argument for the stake function
         txPayload.transaction[0].args.push('PERMIT2_SIGNATURE_PLACEHOLDER_0');
     }
 
@@ -206,7 +198,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, provider);
     const decimals = await tokenContract.decimals();
     const amountInWei = ethers.parseUnits(amount, Number(decimals)).toString();
-    await sendTx('stake', [amountInWei]);
+    await sendTx('stake', [amountInWei], true);
     await new Promise(resolve => setTimeout(resolve, 3000)); // optimistic wait
     await refreshAllData(address);
   };
@@ -251,8 +243,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     unstake,
     claimRewards,
     handleVerifyRedirect,
-    refreshAllData,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
+
+    
