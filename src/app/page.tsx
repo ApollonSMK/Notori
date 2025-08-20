@@ -16,8 +16,6 @@ import { AppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-const TOKEN_SYMBOL = "WLD";
-
 export default function Home() {
   const [isStakeDialogOpen, setIsStakeDialogOpen] = useState(false);
   const [isUnstakeDialogOpen, setIsUnstakeDialogOpen] = useState(false);
@@ -28,6 +26,7 @@ export default function Home() {
     walletBalance, 
     stakedAmount, 
     rewardsAccumulated, 
+    tokenSymbol,
     apr, 
     isLoading, 
     claimRewards,
@@ -100,14 +99,14 @@ export default function Home() {
              <CardDescription className="text-muted-foreground">Total Staked Balance</CardDescription>
             <CardTitle className="flex items-baseline gap-2">
               <span className="text-4xl font-extrabold tracking-tight">{stakedAmount.toFixed(4)}</span>
-              <span className="text-xl font-medium text-muted-foreground">{TOKEN_SYMBOL}</span>
+              <span className="text-xl font-medium text-muted-foreground">{tokenSymbol}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
              <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                 <div>
                     <p className="text-sm text-muted-foreground">Accumulated Rewards</p>
-                    <p className="font-semibold text-lg">{rewardsAccumulated.toFixed(6)} {TOKEN_SYMBOL}</p>
+                    <p className="font-semibold text-lg">{rewardsAccumulated.toFixed(6)} {tokenSymbol}</p>
                 </div>
                 <Button
                     size="sm"
@@ -127,7 +126,7 @@ export default function Home() {
                     <span className="text-muted-foreground flex items-center gap-2">
                         <Wallet className="w-4 h-4" /> Wallet Balance
                     </span>
-                    <span className="font-semibold">{walletBalance.toFixed(2)} {TOKEN_SYMBOL}</span>
+                    <span className="font-semibold">{walletBalance.toFixed(2)} {tokenSymbol}</span>
                 </div>
                  <Separator />
                  <div className="flex justify-between items-center text-sm">
@@ -157,14 +156,12 @@ export default function Home() {
         onOpenChange={setIsStakeDialogOpen}
         action="Stake"
         balance={walletBalance}
-        tokenSymbol={TOKEN_SYMBOL}
       />
       <StakeDialog
         open={isUnstakeDialogOpen}
         onOpenChange={setIsUnstakeDialogOpen}
         action="Unstake"
         balance={stakedAmount}
-        tokenSymbol={TOKEN_SYMBOL}
       />
     </AppLayout>
   );

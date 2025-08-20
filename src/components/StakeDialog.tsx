@@ -22,16 +22,16 @@ interface StakeDialogProps {
   onOpenChange: (open: boolean) => void;
   action: 'Stake' | 'Unstake';
   balance: number;
-  tokenSymbol: string;
 }
 
-export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }: StakeDialogProps) {
+export function StakeDialog({ open, onOpenChange, action, balance }: StakeDialogProps) {
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { stake, unstake } = useContext(AppContext);
+  const { stake, unstake, tokenSymbol, refreshAllData, address } = useContext(AppContext);
 
   const handleAction = async () => {
+    if (!address) return;
     const numericAmount = parseFloat(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
       toast({
@@ -64,6 +64,10 @@ export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }
         });
         onOpenChange(false);
         setAmount('');
+        // Add a delay before refreshing data to allow blockchain to update
+        setTimeout(() => {
+          refreshAllData(address);
+        }, 5000); 
     } catch (error) {
         toast({
             title: `${action} Failed`,
@@ -117,3 +121,4 @@ export function StakeDialog({ open, onOpenChange, action, balance, tokenSymbol }
     </Dialog>
   );
 }
+

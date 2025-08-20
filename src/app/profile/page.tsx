@@ -24,7 +24,7 @@ const StatCard = ({ icon: Icon, label, value, unit }: { icon: React.ElementType,
 );
 
 export default function ProfilePage() {
-  const { username, stakedAmount, rewardsAccumulated, logout } = useContext(AppContext);
+  const { username, stakedAmount, rewardsAccumulated, logout, tokenSymbol } = useContext(AppContext);
   
   return (
     <AppLayout>
@@ -46,8 +46,8 @@ export default function ProfilePage() {
                 </div>
             </div>
             <div className="p-4 grid grid-cols-2 gap-4">
-                <StatCard icon={TrendingUp} label="Total Staked" value={stakedAmount.toFixed(2)} unit="WLD" />
-                <StatCard icon={Star} label="Total Rewards" value={rewardsAccumulated.toFixed(2)} unit="WLD" />
+                <StatCard icon={TrendingUp} label="Total Staked" value={stakedAmount.toFixed(2)} unit={tokenSymbol} />
+                <StatCard icon={Star} label="Total Rewards" value={rewardsAccumulated.toFixed(2)} unit={tokenSymbol} />
             </div>
         </Card>
 

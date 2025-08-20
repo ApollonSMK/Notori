@@ -11,10 +11,10 @@ const RPC_URL = process.env.NEXT_PUBLIC_WORLDCHAIN_RPC!;
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
 const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_ADDRESS!;
 
-// A simple ERC20 ABI snippet to get the balance
-const ERC20_ABI = [
+const ERC20_ABI_SNIPPET = [
   "function balanceOf(address owner) view returns (uint256)",
-  "function decimals() view returns (uint8)"
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)"
 ];
 
 interface AppState {
@@ -25,6 +25,7 @@ interface AppState {
   walletBalance: number;
   stakedAmount: number;
   rewardsAccumulated: number;
+  tokenSymbol: string;
   apr: string;
   isLoading: boolean;
   isMounted: boolean;
@@ -35,6 +36,7 @@ interface AppState {
   unstake: (amount: string) => Promise<void>;
   claimRewards: () => Promise<void>;
   handleVerifyRedirect: () => void;
+  refreshAllData: (userAddress: string) => Promise<void>;
 }
 
 export const AppContext = createContext<AppState>({
@@ -45,6 +47,7 @@ export const AppContext = createContext<AppState>({
   walletBalance: 0,
   stakedAmount: 0,
   rewardsAccumulated: 0,
+  tokenSymbol: "TOKEN",
   apr: "12.5%",
   isLoading: true,
   isMounted: false,
@@ -55,6 +58,7 @@ export const AppContext = createContext<AppState>({
   unstake: async () => {},
   claimRewards: async () => {},
   handleVerifyRedirect: () => {},
+  refreshAllData: async () => {},
 });
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
@@ -65,6 +69,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [walletBalance, setWalletBalance] = useState(0);
   const [stakedAmount, setStakedAmount] = useState(0);
   const [rewardsAccumulated, setRewardsAccumulated] = useState(0);
+  const [tokenSymbol, setTokenSymbol] = useState("TOKEN");
   const [apr, setApr] = useState("12.5%");
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
@@ -81,19 +86,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const provider = new ethers.JsonRpcProvider(RPC_URL);
       const stakeContract = new ethers.Contract(CONTRACT_ADDRESS, NotoriStakeABI, provider);
-      const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, provider);
+      const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI_SNIPPET, provider);
 
-      const [staked, rewards, balance, decimals] = await Promise.all([
+      const [staked, rewards, balance, decimals, symbol] = await Promise.all([
         stakeContract.getStakedAmount(userAddress),
         stakeContract.getRewardsAmount(userAddress),
         tokenContract.balanceOf(userAddress),
-        tokenContract.decimals()
+        tokenContract.decimals(),
+        tokenContract.symbol()
       ]);
 
       const tokenDecimals = Number(decimals);
       setStakedAmount(parseFloat(ethers.formatUnits(staked, tokenDecimals)));
       setRewardsAccumulated(parseFloat(ethers.formatUnits(rewards, tokenDecimals)));
       setWalletBalance(parseFloat(ethers.formatUnits(balance, tokenDecimals)));
+      setTokenSymbol(symbol);
       
     } catch (error) {
       console.error("Failed to fetch contract data:", error);
@@ -168,17 +175,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
     
     if (needsPermit) {
-        const amountToStake = args[0];
-        txPayload.permit2 = [{
-            permitted: {
-                token: TOKEN_ADDRESS,
-                amount: amountToStake,
-            },
-            spender: CONTRACT_ADDRESS,
-            nonce: Date.now().toString(),
-            deadline: (Math.floor(Date.now() / 1000) + 3600).toString(),
-        }];
-        txPayload.transaction[0].args.push('PERMIT2_SIGNATURE_PLACEHOLDER_0');
+      const provider = new ethers.JsonRpcProvider(RPC_URL);
+      const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI_SNIPPET, provider);
+      const decimals = await tokenContract.decimals();
+      const amountToStake = ethers.parseUnits(args[0], Number(decimals)).toString();
+      
+      txPayload.permit2 = [{
+          permitted: {
+              token: TOKEN_ADDRESS,
+              amount: amountToStake,
+          },
+          spender: CONTRACT_ADDRESS,
+          nonce: Date.now().toString(),
+          deadline: (Math.floor(Date.now() / 1000) + 3600).toString(),
+      }];
+      // The actual amount in wei is the first argument, followed by the signature placeholder
+      txPayload.transaction[0].args = [amountToStake, 'PERMIT2_SIGNATURE_PLACEHOLDER_0'];
     }
 
     const { finalPayload } = await MiniKit.commandsAsync.sendTransaction(txPayload);
@@ -194,31 +206,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const stake = async (amount: string) => {
     if (!address) throw new Error("User not authenticated");
-    const provider = new ethers.JsonRpcProvider(RPC_URL);
-    const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, provider);
-    const decimals = await tokenContract.decimals();
-    const amountInWei = ethers.parseUnits(amount, Number(decimals)).toString();
-    await sendTx('stake', [amountInWei], true);
-    await new Promise(resolve => setTimeout(resolve, 3000)); // optimistic wait
-    await refreshAllData(address);
+    await sendTx('stake', [amount], true);
+    // Optimistic wait, in a real app you'd poll for tx confirmation
+    setTimeout(() => refreshAllData(address), 5000); 
   };
 
   const unstake = async (amount: string) => {
     if (!address) throw new Error("User not authenticated");
     const provider = new ethers.JsonRpcProvider(RPC_URL);
-    const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, provider);
+    const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI_SNIPPET, provider);
     const decimals = await tokenContract.decimals();
     const amountInWei = ethers.parseUnits(amount, Number(decimals)).toString();
     await sendTx('unstake', [amountInWei]);
-    await new Promise(resolve => setTimeout(resolve, 3000)); // optimistic wait
-    await refreshAllData(address);
+     // Optimistic wait
+    setTimeout(() => refreshAllData(address), 5000);
   };
 
   const claimRewards = async () => {
     if (!address) throw new Error("User not authenticated");
     await sendTx('claimRewards', []);
-    await new Promise(resolve => setTimeout(resolve, 3000)); // optimistic wait
-    await refreshAllData(address);
+     // Optimistic wait
+    setTimeout(() => refreshAllData(address), 5000);
   };
 
   const handleVerifyRedirect = () => {
@@ -233,6 +241,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     walletBalance,
     stakedAmount,
     rewardsAccumulated,
+    tokenSymbol,
     apr,
     isLoading,
     isMounted,
@@ -243,9 +252,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     unstake,
     claimRewards,
     handleVerifyRedirect,
+    refreshAllData,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
-
-    
