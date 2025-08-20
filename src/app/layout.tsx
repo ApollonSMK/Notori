@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AppProvider } from '@/context/AppContext';
+import { MiniKitProvider } from '@/components/MiniKitProvider';
 
 export const metadata: Metadata = {
   title: 'Notori Credibility',
@@ -34,14 +35,14 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased h-full bg-background">
         <AppProvider>
-          <div vaul-drawer-wrapper="" className="bg-background">
-            {children}
-          </div>
-          <Toaster />
+            <MiniKitProvider>
+              <div vaul-drawer-wrapper="" className="bg-background">
+                {children}
+              </div>
+              <Toaster />
+            </MiniKitProvider>
         </AppProvider>
       </body>
     </html>
   );
 }
-
-    

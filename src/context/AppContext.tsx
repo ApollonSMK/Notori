@@ -2,7 +2,6 @@
 "use client";
 
 import React, { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { MiniKit } from '@worldcoin/minikit-js';
 import { useRouter } from 'next/navigation';
 import { ethers } from 'ethers';
 
@@ -19,7 +18,7 @@ const ERC20_ABI = [
     "function symbol() view returns (string)",
 ];
 
-const WORLDCHAIN_RPC_URL = "https://worldchain-mainnet.g.alchemy.com/public";
+const WORLDCHAIN_RPC_URL = "https://worldchain-mainnet.g.alchemy.com/v2/RCo_k3jDxn6E0Iivu3bg6";
 
 interface TokenBalance {
     symbol: string;
@@ -88,23 +87,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-        if (typeof window !== "undefined") {
-            await MiniKit.install();
-            
-            const storedAddress = localStorage.getItem('notori_address');
-            const storedUsername = localStorage.getItem('notori_username');
-            const storedVerification = localStorage.getItem('notori_verified') === 'true';
+        const storedAddress = localStorage.getItem('notori_address');
+        const storedUsername = localStorage.getItem('notori_username');
+        const storedVerification = localStorage.getItem('notori_verified') === 'true';
 
-            if (storedAddress && storedUsername) {
-                setAddress(storedAddress);
-                setUsername(storedUsername);
-                setIsAuthenticated(true);
-                setIsVerified(storedVerification);
-                await fetchTokenBalances(storedAddress);
-            }
-            setIsLoading(false);
-            setIsMounted(true);
+        if (storedAddress && storedUsername) {
+            setAddress(storedAddress);
+            setUsername(storedUsername);
+            setIsAuthenticated(true);
+            setIsVerified(storedVerification);
+            await fetchTokenBalances(storedAddress);
         }
+        setIsLoading(false);
+        setIsMounted(true);
     };
     init();
   }, [fetchTokenBalances]);
