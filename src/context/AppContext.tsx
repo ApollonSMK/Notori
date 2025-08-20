@@ -69,7 +69,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [walletBalance, setWalletBalance] = useState(0);
   const [stakedAmount, setStakedAmount] = useState(0);
   const [rewardsAccumulated, setRewardsAccumulated] = useState(0);
-  const [tokenSymbol, setTokenSymbol] = useState("TOKEN");
+  const [tokenSymbol, setTokenSymbol] = useState("WZT");
   const [apr, setApr] = useState("12.5%");
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
@@ -107,30 +107,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } finally {
         setIsLoading(false);
     }
+  }, [tokenSymbol]);
+
+  // Effect to handle initialization and local storage
+  useEffect(() => {
+    const initApp = async () => {
+        await MiniKit.install();
+        const storedAddress = localStorage.getItem('notori_address');
+        const storedUsername = localStorage.getItem('notori_username');
+        const storedVerification = localStorage.getItem('notori_verified') === 'true';
+
+        if (storedAddress && storedUsername) {
+            setAddress(storedAddress);
+            setUsername(storedUsername);
+            setIsAuthenticated(true);
+            setIsVerified(storedVerification);
+        } else {
+            setIsLoading(false); // Only stop loading if not authenticated from storage
+        }
+        setIsMounted(true);
+    };
+    initApp();
   }, []);
 
-  const initAuth = useCallback(async () => {
-    setIsLoading(true);
-    await MiniKit.install();
-    const storedAddress = localStorage.getItem('notori_address');
-    const storedUsername = localStorage.getItem('notori_username');
-    const storedVerification = localStorage.getItem('notori_verified') === 'true';
-
-    if (storedAddress && storedUsername) {
-        setAddress(storedAddress);
-        setUsername(storedUsername);
-        setIsAuthenticated(true);
-        setIsVerified(storedVerification);
-        await refreshAllData(storedAddress);
-    } else {
-        setIsLoading(false);
-    }
-  }, [refreshAllData]);
-
+  // Effect to fetch data when address is set
   useEffect(() => {
-    setIsMounted(true);
-    initAuth();
-  }, [initAuth]);
+    if (address) {
+      refreshAllData(address);
+    }
+  }, [address, refreshAllData]);
 
 
   const login = (addr: string, user: string) => {
@@ -139,7 +144,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setAddress(addr);
     setUsername(user);
     setIsAuthenticated(true);
-    refreshAllData(addr);
+    // Data fetching will be triggered by the useEffect that watches `address`
   };
 
   const logout = () => {
@@ -199,7 +204,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         throw new Error(finalPayload.error_code || 'Transaction failed.');
     }
 
-    // TODO: Poll for transaction receipt for better UX
     console.log('Transaction sent:', finalPayload.transaction_id);
     return finalPayload.transaction_id;
   }
@@ -207,7 +211,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const stake = async (amount: string) => {
     if (!address) throw new Error("User not authenticated");
     await sendTx('stake', [amount], true);
-    // Optimistic wait, in a real app you'd poll for tx confirmation
     setTimeout(() => refreshAllData(address), 5000); 
   };
 
@@ -218,14 +221,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const decimals = await tokenContract.decimals();
     const amountInWei = ethers.parseUnits(amount, Number(decimals)).toString();
     await sendTx('unstake', [amountInWei]);
-     // Optimistic wait
     setTimeout(() => refreshAllData(address), 5000);
   };
 
   const claimRewards = async () => {
     if (!address) throw new Error("User not authenticated");
     await sendTx('claimRewards', []);
-     // Optimistic wait
     setTimeout(() => refreshAllData(address), 5000);
   };
 
@@ -257,3 +258,5 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
+
+    
